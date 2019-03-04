@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 import json
 import sqlite3 as sql
+import traceback
 from time import sleep
 
 from InowasFlopyAdapter.InowasFlopyCalculationAdapter import InowasFlopyCalculationAdapter
@@ -16,7 +17,7 @@ def db_connect():
 def db_init():
     conn = db_connect()
     conn.execute(
-        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, created_at DATE, updated_at DATE)')
+        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, message TEXT, created_at DATE, updated_at DATE)')
 
 
 def get_next_new_calculation_job():
@@ -70,14 +71,10 @@ def calculate(idx, calculation_id):
     cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (1, datetime.now(), idx))
     conn.commit()
 
-    try:
-        InowasFlopyCalculationAdapter(version, data, calculation_id)
-        cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (2, datetime.now(), idx))
-        conn.commit()
-        return
-    except:
-        cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (3, datetime.now(), idx))
-        conn.commit()
+    flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
+    cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
+                (2, flopy.response_message(), datetime.now(), idx))
+    conn.commit()
 
 
 def run():
@@ -85,11 +82,21 @@ def run():
         print(str(datetime.now()) + ': Waiting....' + "\r")
         row = get_next_new_calculation_job()
 
+        id = row['id']
+        calculation_id = row['calculation_id']
+
         if not row:
             sleep(1)
             continue
 
-        calculate(row['id'], row['calculation_id'])
+        try:
+            calculate(id, calculation_id)
+        except:
+            conn = db_connect()
+            cur = conn.cursor()
+            cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
+                        (3, traceback.format_exc(limit=10), datetime.now(), id))
+            conn.commit()
 
 
 if __name__ == '__main__':

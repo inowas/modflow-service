@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, redirect, render_template
 from flask_cors import CORS, cross_origin
 import urllib.request
-
+from shutil import copyfile
 import sqlite3 as sql
 from datetime import datetime
 import json
@@ -10,7 +10,7 @@ import jsonschema
 import uuid
 
 UPLOAD_FOLDER = './uploads'
-MODFLOW_FOLDER = './modflow'
+MODFLOW_FOLDER = '/modflow'
 
 app = Flask(__name__)
 CORS(app)
@@ -19,7 +19,7 @@ CORS(app)
 def db_init():
     conn = db_connect()
     conn.execute(
-        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, created_at DATE, updated_at DATE)')
+        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, message TEXT, created_at DATE, updated_at DATE)')
 
 
 def db_connect():
@@ -84,13 +84,7 @@ def upload_file():
             return 'This JSON file does not match with the MODFLOW JSON Schema'
 
         content = read_json(temp_file)
-        author = content.get("author")
-        project = content.get("project")
         calculation_id = content.get("calculation_id")
-        model_id = content.get("model_id")
-        type = content.get("type")
-        version = content.get("version")
-        data = content.get("data").get("mf")
 
         target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
         modflow_file = os.path.join(target_directory, 'configuration.json')
@@ -100,7 +94,7 @@ def upload_file():
             return 'calculation_id (' + calculation_id + ')is already existing. Address: http://127.0.0.1:5000/' + calculation_id
 
         os.makedirs(target_directory)
-        os.rename(temp_file, modflow_file)
+        copyfile(temp_file, modflow_file)
 
         with db_connect() as con:
             cur = con.cursor()

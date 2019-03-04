@@ -2,4 +2,4 @@
 uploads/
 modflow-data/
 db/*
-
+.env

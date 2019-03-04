@@ -1,4 +1,5 @@
 .idea
 uploads/
-modflow/
-database.db
+modflow-data/
+db/*
+

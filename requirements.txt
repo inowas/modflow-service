@@ -1,0 +1,16 @@
+attrs==19.1.0
+Click==7.0
+Flask==1.0.2
+Flask-Cors==3.0.7
+itsdangerous==1.1.0
+Jinja2==2.10
+jsonschema==3.0.1
+MarkupSafe==1.1.1
+pbr==5.1.1
+pyrsistent==0.14.11
+six==1.11.0
+stevedore==1.30.0
+virtualenv==16.1.0
+virtualenv-clone==0.4.0
+virtualenvwrapper==4.8.2
+Werkzeug==0.14.1

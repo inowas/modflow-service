@@ -2,7 +2,7 @@ version: "2.1"
 
 services:
   app:
-    image: inowas/geoprocessing:latest
+    build: .
     restart: always
     expose:
       - 5000

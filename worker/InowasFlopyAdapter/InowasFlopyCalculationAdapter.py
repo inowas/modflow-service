@@ -48,6 +48,7 @@ class InowasFlopyCalculationAdapter:
     _mf = None
     _mt = None
     _report = ''
+    _success = False
 
     mf_package_order = [
         'mf', 'dis', 'bas', 'bas6',
@@ -65,7 +66,6 @@ class InowasFlopyCalculationAdapter:
         self._mt_data = data.get("mt")
         self._version = version
         self._uuid = uuid
-        self.success = False
 
         if self._mf_data is not None:
             package_content = self.read_packages(self._mf_data)
@@ -82,7 +82,7 @@ class InowasFlopyCalculationAdapter:
                 package_content = self.read_packages(self._mt_data)
                 self.create_model(self.mt_package_order, package_content)
                 self.write_input_model(self._mt)
-                self.success, report = self.run_model(self._mt, model_type='mt')
+                self._success, report = self.run_model(self._mt, model_type='mt')
                 self._report += report
 
     @staticmethod
@@ -207,6 +207,9 @@ class InowasFlopyCalculationAdapter:
         response['number_of_layers'] = heads.read_number_of_layers()
 
         return response
+
+    def success(self):
+        return self._success
 
     def response_message(self):
         return self._report

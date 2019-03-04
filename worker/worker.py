@@ -68,12 +68,14 @@ def calculate(idx, calculation_id):
 
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (1, datetime.now(), idx))
+    cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (100, datetime.now(), idx))
     conn.commit()
 
     flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
+    state = 200 if flopy.success else 400
+
     cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
-                (2, flopy.response_message(), datetime.now(), idx))
+                (state, flopy.response_message(), datetime.now(), idx))
     conn.commit()
 
 
@@ -82,12 +84,12 @@ def run():
         print(str(datetime.now()) + ': Waiting....' + "\r")
         row = get_next_new_calculation_job()
 
-        id = row['id']
-        calculation_id = row['calculation_id']
-
         if not row:
             sleep(1)
             continue
+
+        id = row['id']
+        calculation_id = row['calculation_id']
 
         try:
             calculate(id, calculation_id)
@@ -95,7 +97,7 @@ def run():
             conn = db_connect()
             cur = conn.cursor()
             cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
-                        (3, traceback.format_exc(limit=10), datetime.now(), id))
+                        (500, traceback.format_exc(limit=10), datetime.now(), id))
             conn.commit()
 
 

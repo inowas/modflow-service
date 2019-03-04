@@ -1,0 +1,35 @@
+version: "2.1"
+
+services:
+  app:
+    image: inowas/geoprocessing:latest
+    restart: always
+    expose:
+      - 5000
+    labels:
+      - "traefik.docker.network=${TRAEFIK_NETWORK_NAME}"
+      - "traefik.enable=true"
+      - "traefik.wiki.frontend.rule=Host: ${HOST_URL}"
+      - "traefik.wiki.port=5000"
+      - "traefik.wiki.protocol=http"
+    networks:
+      - web
+    volumes:
+      - .:/app
+
+  traefik:
+    image: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/acme.json:/acme.json
+      - ./traefik/traefik.toml:/traefik.toml
+      - ./traefik/logs:/logs
+
+networks:
+  web:

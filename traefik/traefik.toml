@@ -1,0 +1,29 @@
+debug = true
+logLevel = "INFO"
+defaultEntryPoints = ["https","http"]
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+[retry]
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+domain = "inowas.com"
+watch = true
+exposedByDefault = false
+[acme]
+email = "ralf.junghanns@tu-dresden.de"
+storage = "acme.json"
+onDemand = true
+caServer = "https://acme-v01.api.letsencrypt.org/directory"
+entryPoint = "https"
+  [acme.httpChallenge]
+  entryPoint = "http"
+[accessLog]
+  filePath = "/logs/access.log"
+[traefikLog]
+  filePath = "/logs/traefik.log"

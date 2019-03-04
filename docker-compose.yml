@@ -18,8 +18,6 @@ services:
       - ./app:/app
       - ./db:/db
       - ./modflow-data:/modflow
-    ports:
-      - "5000:5000"
 
   worker:
     build: ./worker
@@ -30,19 +28,19 @@ services:
       - ./modflow-data:/modflow
     command: ["python", "worker.py"]
 
-#  traefik:
-#    image: traefik
-#    restart: always
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#    networks:
-#      - web
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
-#      - ./traefik/acme.json:/acme.json
-#      - ./traefik/traefik.toml:/traefik.toml
-#      - ./traefik/logs:/logs
+  traefik:
+    image: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/acme.json:/acme.json
+      - ./traefik/traefik.toml:/traefik.toml
+      - ./traefik/logs:/logs
 
 networks:
   web:

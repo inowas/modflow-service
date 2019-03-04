@@ -7,7 +7,7 @@ services:
     expose:
       - 5000
     labels:
-      - "traefik.docker.network=${TRAEFIK_NETWORK_NAME}"
+      - "traefik.docker.network=web"
       - "traefik.enable=true"
       - "traefik.wiki.frontend.rule=Host: ${HOST_URL}"
       - "traefik.wiki.port=5000"
@@ -33,3 +33,4 @@ services:
 
 networks:
   web:
+    external:

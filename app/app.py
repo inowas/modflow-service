@@ -9,10 +9,6 @@ import json
 import jsonschema
 import uuid
 
-conn = sql.connect('database.db')
-conn.execute(
-    'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, created_at DATE, updated_at DATE)')
-
 UPLOAD_FOLDER = './uploads'
 MODFLOW_FOLDER = './modflow'
 
@@ -20,7 +16,15 @@ app = Flask(__name__)
 CORS(app)
 
 
-# warnings.filterwarnings("ignore")
+def db_init():
+    conn = db_connect()
+    conn.execute(
+        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, created_at DATE, updated_at DATE)')
+
+
+def db_connect():
+    return sql.connect('/db/modflow.db')
+
 
 def valid_json_file(file):
     with open(file) as filedata:
@@ -98,7 +102,7 @@ def upload_file():
         os.makedirs(target_directory)
         os.rename(temp_file, modflow_file)
 
-        with sql.connect("database.db") as con:
+        with db_connect() as con:
             cur = con.cursor()
             cur.execute("INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)",
                         (calculation_id, 0, datetime.now(), datetime.now()))
@@ -123,7 +127,7 @@ def configuration(calculation_id):
 
 @app.route('/list')
 def list():
-    con = sql.connect("database.db")
+    con = db_connect()
     con.row_factory = sql.Row
 
     cur = con.cursor()
@@ -142,5 +146,7 @@ if __name__ == '__main__':
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
     app.debug = True
+
+    db_init()
 
     app.run(debug=True, host='0.0.0.0')

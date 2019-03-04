@@ -2,7 +2,7 @@ version: "2.1"
 
 services:
   app:
-    build: .
+    build: ./app
     restart: always
     expose:
       - 5000
@@ -15,7 +15,18 @@ services:
     networks:
       - web
     volumes:
-      - .:/app
+      - ./app:/app
+      - ./db:/db
+      - ./modflow-data:/modflow
+
+  worker:
+    build: ./worker
+    restart: always
+    volumes:
+      - ./worker:/app
+      - ./db:/db
+      - ./modflow-data:/modflow
+    command: ["python", "worker.py"]
 
   traefik:
     image: traefik

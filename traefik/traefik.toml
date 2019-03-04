@@ -19,7 +19,7 @@ exposedByDefault = false
 email = "ralf.junghanns@tu-dresden.de"
 storage = "acme.json"
 onDemand = true
-caServer = "https://acme-v01.api.letsencrypt.org/directory"
+caServer = "https://acme-v02.api.letsencrypt.org/directory"
 entryPoint = "https"
   [acme.httpChallenge]
   entryPoint = "http"

@@ -7,11 +7,13 @@ from time import sleep
 
 from InowasFlopyAdapter.InowasFlopyCalculationAdapter import InowasFlopyCalculationAdapter
 
+
+DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
 
 
 def db_connect():
-    return sql.connect('/db/modflow.db')
+    return sql.connect(DB_LOCATION)
 
 
 def db_init():

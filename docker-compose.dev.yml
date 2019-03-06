@@ -1,0 +1,27 @@
+version: "2.1"
+
+services:
+  app:
+    build: ./app
+    restart: always
+    networks:
+      - web
+    volumes:
+      - ./app:/app
+      - ./db:/db
+      - ./modflow-data:/modflow
+    ports:
+      - "5000:5000"
+
+  worker:
+    build: ./worker
+    restart: always
+    volumes:
+      - ./worker:/app
+      - ./db:/db
+      - ./modflow-data:/modflow
+    command: ["python", "worker.py"]
+
+networks:
+  web:
+    external: true

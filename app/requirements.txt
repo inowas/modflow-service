@@ -2,6 +2,7 @@ attrs==19.1.0
 Click==7.0
 Flask==1.0.2
 Flask-Cors==3.0.7
+flopy==3.2.10
 itsdangerous==1.1.0
 Jinja2==2.10
 jsonschema==3.0.1

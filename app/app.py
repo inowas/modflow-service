@@ -9,8 +9,14 @@ import json
 import jsonschema
 import uuid
 
-UPLOAD_FOLDER = './uploads'
+from InowasFlopyAdapter.ReadBudget import ReadBudget
+from InowasFlopyAdapter.ReadConcentration import ReadConcentration
+from InowasFlopyAdapter.ReadDrawdown import ReadDrawdown
+from InowasFlopyAdapter.ReadHead import ReadHead
+
+DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
+UPLOAD_FOLDER = './uploads'
 
 app = Flask(__name__)
 CORS(app)
@@ -23,13 +29,61 @@ def db_init():
 
 
 def db_connect():
-    return sql.connect('/db/modflow.db')
+    return sql.connect(DB_LOCATION)
+
+
+def get_calculation_by_id(calculation_id):
+    conn = db_connect()
+    conn.row_factory = sql.Row
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ?',
+                   (calculation_id,))
+    return cursor.fetchone()
+
+
+def get_calculation_details_json(calculation_id, data, path):
+    calculation = get_calculation_by_id(calculation_id)
+    heads = ReadHead(path)
+    budget_times = ReadBudget(path).read_times()
+    concentration_times = ReadConcentration(path).read_times()
+    drawdown_times = ReadDrawdown(path).read_times()
+
+    times = {
+        'start_date_time': data['dis']['start_datetime'],
+        'time_unit': data['dis']['itmuni'],
+        'total_times': heads.read_times()
+    }
+
+    layer_values = []
+    number_of_layers = data['dis']['nlay']
+
+    lv = ['head']
+    if len(budget_times) > 0:
+        lv.append('budget')
+
+    if len(concentration_times) > 0:
+        lv.append('concentration')
+
+    if len(drawdown_times) > 0:
+        lv.append('drawdown')
+
+    for i in range(0, number_of_layers):
+        layer_values.append(lv)
+
+    return json.dumps({
+        'calculation_id': calculation_id,
+        'state': calculation['state'],
+        'message': calculation['message'],
+        'times': str(times),
+        'layer_values': layer_values
+    })
 
 
 def valid_json_file(file):
     with open(file) as filedata:
         try:
-            data = json.loads(filedata.read())
+            json.loads(filedata.read())
         except ValueError:
             return False
         return True
@@ -43,20 +97,20 @@ def read_json(file):
 
 def schema_validation(file):
     content = read_json(file)
-    data = content.get("data").get("mf")
-    link = "https://schema.inowas.com/modflow/packages/packages.schema.json"
-    schemadata = urllib.request.urlopen(link)
-    schema = json.loads(schemadata.read())
+
     try:
-        jsonschema.validate(instance=data, schema=schema)
-    except jsonschema.exceptions.ValidationError:
+        data = content.get("data").get("mf")
+    except AttributeError:
         return False
-    return True
-
-
-def file_extension(filename):
-    if '.' in filename:
-        return '_' + filename.rsplit('.', 1)[1]
+    else:
+        link = "https://schema.inowas.com/modflow/packages/packages.schema.json"
+        schemadata = urllib.request.urlopen(link)
+        schema = json.loads(schemadata.read())
+        try:
+            jsonschema.validate(instance=data, schema=schema)
+        except jsonschema.exceptions.ValidationError:
+            return False
+        return True
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -71,7 +125,7 @@ def upload_file():
         if uploaded_file.filename == '':
             return 'No selected file'
 
-        temp_filename = str(uuid.uuid4()) + '.' + file_extension(uploaded_file.filename)
+        temp_filename = str(uuid.uuid4()) + '.json'
         temp_file = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
         uploaded_file.save(temp_file)
 
@@ -91,32 +145,42 @@ def upload_file():
 
         if os.path.exists(modflow_file):
             os.remove(temp_file)
-            return 'calculation_id (' + calculation_id + ')is already existing. Address: http://127.0.0.1:5000/' + calculation_id
+            return 'calculation_id (' + calculation_id + ')is already existing.'
 
         os.makedirs(target_directory)
         copyfile(temp_file, modflow_file)
-
+        os.remove(temp_file)
         with db_connect() as con:
             cur = con.cursor()
             cur.execute("INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)",
                         (calculation_id, 0, datetime.now(), datetime.now()))
 
-        return json.dumps({
-            'status': 200,
-            'get_metadata': '/' + calculation_id
-        })
+        if request.content_type == 'application/json':
+            return json.dumps({
+                'status': 200,
+                'get_metadata': '/' + calculation_id
+            })
 
-    return render_template('upload.html')
+        return redirect('/' + calculation_id)
+
+    if request.method == 'GET':
+        return render_template('upload.html')
 
 
 @app.route('/<calculation_id>')
 @cross_origin()
-def configuration(calculation_id):
+def calculation_details(calculation_id):
     modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
     if not os.path.exists(modflow_file):
         return 'The file does not exist'
+
     data = read_json(modflow_file).get("data").get("mf")
-    return json.dumps(data)
+    path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+
+    if request.content_type == 'application/json':
+        return get_calculation_details_json(calculation_id, data, path)
+
+    return render_template('details.html', id=str(calculation_id), data=data, path=path)
 
 
 @app.route('/list')

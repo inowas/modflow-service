@@ -76,7 +76,7 @@ def get_calculation_details_json(calculation_id, data, path):
         'calculation_id': calculation_id,
         'state': calculation['state'],
         'message': calculation['message'],
-        'files': str(os.listdir(target_directory)),
+        'files': os.listdir(target_directory),
         'times': str(times),
         'layer_values': layer_values
     })

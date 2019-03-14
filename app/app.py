@@ -203,7 +203,7 @@ def calculation_details(calculation_id):
     data = read_json(modflow_file).get("data").get("mf")
     path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
 
-    if request.content_type == 'application/json':
+    if 'application/json' in request.content_type:
         return get_calculation_details_json(calculation_id, data, path)
 
     return render_template('details.html', id=str(calculation_id), data=data, path=path)

@@ -176,14 +176,12 @@ def upload_file():
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')
 
-            if os.path.exists(modflow_file):
-                return 'Model with calculationId: ' + calculation_id + ' already exits.'
+            if not os.path.exists(modflow_file):
+                os.makedirs(target_directory)
+                with open(modflow_file, 'w') as outfile:
+                    json.dump(content, outfile)
 
-            os.makedirs(target_directory)
-            with open(modflow_file, 'w') as outfile:
-                json.dump(content, outfile)
-
-            insert_new_calculation(calculation_id)
+                insert_new_calculation(calculation_id)
 
             return json.dumps({
                 'status': 200,

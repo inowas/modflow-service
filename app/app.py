@@ -70,10 +70,13 @@ def get_calculation_details_json(calculation_id, data, path):
     for i in range(0, number_of_layers):
         layer_values.append(lv)
 
+    target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+
     return json.dumps({
         'calculation_id': calculation_id,
         'state': calculation['state'],
         'message': calculation['message'],
+        'files': str(os.listdir(target_directory)),
         'times': str(times),
         'layer_values': layer_values
     })

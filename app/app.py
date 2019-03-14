@@ -193,20 +193,21 @@ def upload_file():
         return render_template('upload.html')
 
 
-@app.route('/<calculation_id>')
+@app.route('/<calculation_id>', methods=['GET'])
 @cross_origin()
 def calculation_details(calculation_id):
-    modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
-    if not os.path.exists(modflow_file):
-        return 'The file does not exist'
+    if request.method == 'GET':
+        modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
+        if not os.path.exists(modflow_file):
+            return 'The file does not exist'
 
-    data = read_json(modflow_file).get("data").get("mf")
-    path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+        data = read_json(modflow_file).get('data').get('mf')
+        path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
 
-    if 'application/json' in request.content_type:
-        return get_calculation_details_json(calculation_id, data, path)
+        if request.content_type and 'application/json' in request.content_type:
+            return get_calculation_details_json(calculation_id, data, path)
 
-    return render_template('details.html', id=str(calculation_id), data=data, path=path)
+        return render_template('details.html', id=str(calculation_id), data=data, path=path)
 
 
 @app.route('/list')

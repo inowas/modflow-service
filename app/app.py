@@ -225,7 +225,7 @@ def get_file(calculation_id, file_name):
             return abort(404, {'message': 'File with name ' + file_name + ' not found.'})
 
         with open(target_file) as f:
-            return base64.b64encode(f.read())
+            return base64.b64encode(f.read().encode('utf-8'))
 
 
 @app.route('/list')

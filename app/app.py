@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, redirect, render_template
+from flask import abort, Flask, request, redirect, render_template
 from flask_cors import CORS, cross_origin
 import urllib.request
 import sqlite3 as sql
@@ -202,7 +202,7 @@ def calculation_details(calculation_id):
     if request.method == 'GET':
         modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
         if not os.path.exists(modflow_file):
-            return 'The file does not exist'
+            return abort(404, {'message': 'Calculation with id ' + calculation_id + ' not found.'})
 
         data = read_json(modflow_file).get('data').get('mf')
         path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)

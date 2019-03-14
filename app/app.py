@@ -167,7 +167,7 @@ def upload_file():
             return redirect('/' + calculation_id)
 
         if 'application/json' in request.content_type:
-            content = request.json
+            content = request.get_json(force=True)
 
             if not is_valid(content):
                 return 'Content is not valid.'

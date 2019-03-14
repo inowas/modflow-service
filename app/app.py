@@ -1,5 +1,4 @@
 import os
-import base64
 from flask import abort, Flask, request, redirect, render_template
 from flask_cors import CORS, cross_origin
 import urllib.request
@@ -131,6 +130,19 @@ def insert_new_calculation(calculation_id):
                     (calculation_id, 0, datetime.now(), datetime.now()))
 
 
+def is_binary(filename):
+    """
+    Return true if the given filename appears to be binary.
+    File is considered to be binary if it contains a NULL byte.
+    FIXME: This approach incorrectly reports UTF-16 as binary.
+    """
+    with open(filename, 'rb') as f:
+        for block in f:
+            if b'\0' in block:
+                return True
+    return False
+
+
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin()
 def upload_file():
@@ -224,19 +236,17 @@ def get_file(calculation_id, file_name):
         if not os.path.exists(target_file):
             return abort(404, {'message': 'File with name ' + file_name + ' not found.'})
 
-        with open(target_file) as f:
-            file_content = f.read()
-            if isinstance(file_content, str):
-                return json.dumps({
-                    'name': file_name,
-                    'content': file_content,
-                    'encoding': None
-                })
-
+        if is_binary(target_file):
             return json.dumps({
                 'name': file_name,
-                'content': base64.b64encode(file_content),
-                'encoding': 'base64'
+                'content': 'This file is a binary file and cannot be shown as text'
+            })
+
+        with open(target_file) as f:
+            file_content = f.read()
+            return json.dumps({
+                'name': file_name,
+                'content': file_content
             })
 
 

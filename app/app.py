@@ -99,35 +99,55 @@ def schema_validation(file):
     content = read_json(file)
 
     try:
-        data = content.get("data").get("mf")
+        data = content.get('data')
+        mf = data.get('mf')
+        mt = data.get('mt')
     except AttributeError:
         return False
-    else:
-        link = "https://schema.inowas.com/modflow/packages/packages.schema.json"
-        schemadata = urllib.request.urlopen(link)
-        schema = json.loads(schemadata.read())
+
+    try:
+        mf_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mfPackages.schema.json")
+        mf_schema = json.loads(mf_schema_data.read())
+        jsonschema.validate(instance=mf, schema=mf_schema)
+    except jsonschema.exceptions.ValidationError:
+        return False
+
+    if mt:
         try:
-            jsonschema.validate(instance=data, schema=schema)
+            mt_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mtPackages.schema.json")
+            mt_schema = json.loads(mt_schema_data.read())
+            jsonschema.validate(instance=mt, schema=mt_schema)
         except jsonschema.exceptions.ValidationError:
             return False
-        return True
+
+    return True
 
 
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin()
 def upload_file():
     if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            return redirect(request.url)
-        uploaded_file = request.files['file']
-
-        if uploaded_file.filename == '':
-            return 'No selected file'
 
         temp_filename = str(uuid.uuid4()) + '.json'
         temp_file = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
-        uploaded_file.save(temp_file)
+
+        if request.content_type == 'multipart/form-data':
+            # check if the post request has the file part
+            if 'file' not in request.files:
+                return 'No file uploaded'
+            uploaded_file = request.files['file']
+
+            if uploaded_file.filename == '':
+                return 'No selected file'
+            uploaded_file.save(temp_file)
+
+        if request.content_type == 'application/json':
+            temp_filename = str(uuid.uuid4()) + '.json'
+            temp_file = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
+
+            data = request.get_json
+            with open(temp_file, 'w') as outfile:
+                json.dump(data, outfile)
 
         if not valid_json_file(temp_file):
             os.remove(temp_file)
@@ -155,13 +175,14 @@ def upload_file():
             cur.execute("INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)",
                         (calculation_id, 0, datetime.now(), datetime.now()))
 
+        if request.content_type == 'multipart/form-data':
+            return redirect('/' + calculation_id)
+
         if request.content_type == 'application/json':
             return json.dumps({
                 'status': 200,
                 'get_metadata': '/' + calculation_id
             })
-
-        return redirect('/' + calculation_id)
 
     if request.method == 'GET':
         return render_template('upload.html')

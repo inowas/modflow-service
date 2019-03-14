@@ -213,6 +213,20 @@ def calculation_details(calculation_id):
         return render_template('details.html', id=str(calculation_id), data=data, path=path)
 
 
+@app.route('/<calculation_id>/files/<file_name>', methods=['GET'])
+@cross_origin()
+def get_file(calculation_id, file_name):
+    if request.method == 'GET':
+
+        target_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, file_name)
+
+        if not os.path.exists(target_file):
+            return abort(404, {'message': 'File with name ' + file_name + ' not found.'})
+
+        with open(target_file) as f:
+            return f.read()
+
+
 @app.route('/list')
 def list():
     con = db_connect()

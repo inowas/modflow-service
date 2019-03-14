@@ -1,4 +1,5 @@
 import os
+import base64
 from flask import abort, Flask, request, redirect, render_template
 from flask_cors import CORS, cross_origin
 import urllib.request
@@ -224,7 +225,7 @@ def get_file(calculation_id, file_name):
             return abort(404, {'message': 'File with name ' + file_name + ' not found.'})
 
         with open(target_file) as f:
-            return f.read()
+            return base64.standard_b64encode(f.read())
 
 
 @app.route('/list')

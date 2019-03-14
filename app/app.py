@@ -2,7 +2,6 @@ import os
 from flask import Flask, request, redirect, render_template
 from flask_cors import CORS, cross_origin
 import urllib.request
-from shutil import copyfile
 import sqlite3 as sql
 from datetime import datetime
 import json
@@ -121,6 +120,13 @@ def is_valid(content):
     return True
 
 
+def insert_new_calculation(calculation_id):
+    with db_connect() as con:
+        cur = con.cursor()
+        cur.execute("INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)",
+                    (calculation_id, 0, datetime.now(), datetime.now()))
+
+
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin()
 def upload_file():
@@ -156,6 +162,8 @@ def upload_file():
             with open(modflow_file, 'w') as outfile:
                 json.dump(content, outfile)
 
+            insert_new_calculation(calculation_id)
+
             return redirect('/' + calculation_id)
 
         if 'application/json' in request.content_type:
@@ -174,6 +182,8 @@ def upload_file():
             os.makedirs(target_directory)
             with open(modflow_file, 'w') as outfile:
                 json.dump(content, outfile)
+
+            insert_new_calculation(calculation_id)
 
             return json.dumps({
                 'status': 200,

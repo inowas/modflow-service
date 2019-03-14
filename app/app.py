@@ -95,9 +95,7 @@ def read_json(file):
     return data
 
 
-def schema_validation(file):
-    content = read_json(file)
-
+def is_valid(content):
     try:
         data = content.get('data')
         mf = data.get('mf')
@@ -128,10 +126,7 @@ def schema_validation(file):
 def upload_file():
     if request.method == 'POST':
 
-        temp_filename = str(uuid.uuid4()) + '.json'
-        temp_file = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
-
-        if request.content_type == 'multipart/form-data':
+        if 'multipart/form-data' in request.content_type:
             # check if the post request has the file part
             if 'file' not in request.files:
                 return 'No file uploaded'
@@ -139,49 +134,51 @@ def upload_file():
 
             if uploaded_file.filename == '':
                 return 'No selected file'
-            uploaded_file.save(temp_file)
 
-        if request.content_type == 'application/json':
             temp_filename = str(uuid.uuid4()) + '.json'
             temp_file = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
+            uploaded_file.save(temp_file)
 
-            data = request.get_json
-            with open(temp_file, 'w') as outfile:
-                json.dump(data, outfile)
+            content = read_json(temp_file)
 
-        if not valid_json_file(temp_file):
-            os.remove(temp_file)
-            return 'File is not a valid JSON-File'
+            if not is_valid(content):
+                os.remove(temp_file)
+                return 'This JSON file does not match with the MODFLOW JSON Schema'
 
-        if not schema_validation(temp_file):
-            os.remove(temp_file)
-            return 'This JSON file does not match with the MODFLOW JSON Schema'
+            calculation_id = content.get("calculation_id")
+            target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+            modflow_file = os.path.join(target_directory, 'configuration.json')
 
-        content = read_json(temp_file)
-        calculation_id = content.get("calculation_id")
+            if os.path.exists(modflow_file):
+                return 'Model with calculationId: ' + calculation_id + ' already exits.'
 
-        target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
-        modflow_file = os.path.join(target_directory, 'configuration.json')
+            os.makedirs(target_directory)
+            with open(modflow_file, 'w') as outfile:
+                json.dump(content, outfile)
 
-        if os.path.exists(modflow_file):
-            os.remove(temp_file)
-            return 'calculation_id (' + calculation_id + ')is already existing.'
-
-        os.makedirs(target_directory)
-        copyfile(temp_file, modflow_file)
-        os.remove(temp_file)
-        with db_connect() as con:
-            cur = con.cursor()
-            cur.execute("INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)",
-                        (calculation_id, 0, datetime.now(), datetime.now()))
-
-        if request.content_type == 'multipart/form-data':
             return redirect('/' + calculation_id)
 
-        if request.content_type == 'application/json':
+        if 'application/json' in request.content_type:
+            content = request.get_json
+
+            if not is_valid(content):
+                return 'Content is not valid.'
+
+            calculation_id = content.get('calculation_id')
+            target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+            modflow_file = os.path.join(target_directory, 'configuration.json')
+
+            if os.path.exists(modflow_file):
+                return 'Model with calculationId: ' + calculation_id + ' already exits.'
+
+            os.makedirs(target_directory)
+            with open(modflow_file, 'w') as outfile:
+                json.dump(content, outfile)
+
             return json.dumps({
                 'status': 200,
-                'get_metadata': '/' + calculation_id
+                'calculation_id': calculation_id,
+                'link': '/' + calculation_id
             })
 
     if request.method == 'GET':

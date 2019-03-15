@@ -212,42 +212,95 @@ def upload_file():
 @app.route('/<calculation_id>', methods=['GET'])
 @cross_origin()
 def calculation_details(calculation_id):
-    if request.method == 'GET':
-        modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
-        if not os.path.exists(modflow_file):
-            return abort(404, {'message': 'Calculation with id ' + calculation_id + ' not found.'})
+    modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
+    if not os.path.exists(modflow_file):
+        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
 
-        data = read_json(modflow_file).get('data').get('mf')
-        path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    data = read_json(modflow_file).get('data').get('mf')
+    path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
 
-        if request.content_type and 'application/json' in request.content_type:
-            return get_calculation_details_json(calculation_id, data, path)
+    if request.content_type and 'application/json' in request.content_type:
+        return get_calculation_details_json(calculation_id, data, path)
 
-        return render_template('details.html', id=str(calculation_id), data=data, path=path)
+    return render_template('details.html', id=str(calculation_id), data=data, path=path)
 
 
 @app.route('/<calculation_id>/files/<file_name>', methods=['GET'])
 @cross_origin()
 def get_file(calculation_id, file_name):
-    if request.method == 'GET':
+    target_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, file_name)
 
-        target_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, file_name)
+    if not os.path.exists(target_file):
+        return abort(404, {'message': 'File with name ' + file_name + ' not found.'})
 
-        if not os.path.exists(target_file):
-            return abort(404, {'message': 'File with name ' + file_name + ' not found.'})
+    if is_binary(target_file):
+        return json.dumps({
+            'name': file_name,
+            'content': 'This file is a binary file and cannot be shown as text'
+        })
 
-        if is_binary(target_file):
-            return json.dumps({
-                'name': file_name,
-                'content': 'This file is a binary file and cannot be shown as text'
-            })
+    with open(target_file) as f:
+        file_content = f.read()
+        return json.dumps({
+            'name': file_name,
+            'content': file_content
+        })
 
-        with open(target_file) as f:
-            file_content = f.read()
-            return json.dumps({
-                'name': file_name,
-                'content': file_content
-            })
+
+@app.route('/<calculation_id>/results/types/<type>/layers/<layer>/totims/<totim>', methods=['GET'])
+@cross_origin()
+def get_results_head_drawdown(calculation_id, type, layer, totim):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
+
+    permitted_types = ['head', 'drawdown']
+
+    totim = float(totim)
+    layer = int(layer)
+
+    if type not in permitted_types:
+        return abort(404, 'Type: ' + type + ' not in the list of permitted types. Permitted types are: ' + ", ".join(
+            permitted_types))
+
+    if type == 'head':
+        heads = ReadHead(target_folder)
+        times = heads.read_times()
+
+        if totim not in times:
+            return abort(
+                404,
+                'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
+            )
+
+        nlay = heads.read_number_of_layers()
+        if layer >= nlay:
+            return abort(
+                404,
+                'Layer must be less then the overall number of layers (' + str(nlay) + ').'
+            )
+
+        return json.dumps(heads.read_layer(totim, layer))
+
+    if type == 'drawdown':
+        drawdown = ReadDrawdown(target_folder)
+        times = drawdown.read_times()
+        if totim not in times:
+            return abort(
+                404,
+                'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
+            )
+
+        nlay = drawdown.read_number_of_layers()
+        if layer >= nlay:
+            return abort(
+                404,
+                'Layer must be less then the overall number of layers (' + str(nlay) + ').'
+            )
+
+        return json.dumps(drawdown.read_layer(totim, layer))
 
 
 @app.route('/list')

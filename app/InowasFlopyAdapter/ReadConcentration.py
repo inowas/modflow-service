@@ -4,8 +4,11 @@ import flopy.utils.binaryfile as bf
 
 class ReadConcentration:
     _filename = None
+    _workspace = None
 
     def __init__(self, workspace):
+        self._workspace = workspace
+
         for file in os.listdir(workspace):
             if file.upper() == "MT3D001.UCN":
                 self._filename = os.path.join(workspace, file)
@@ -17,6 +20,13 @@ class ReadConcentration:
             return ucn_obj.get_times()
         except:
             return []
+
+    def read_number_of_substances(self):
+        try:
+            return len([f for f in os.listdir(self._workspace) if
+                        f.endswith('.UCN') and os.path.isfile(os.path.join(self._workspace, f))])
+        except:
+            return 0
 
     def read_number_of_layers(self):
         try:

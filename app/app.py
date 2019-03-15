@@ -48,10 +48,12 @@ def get_calculation_details_json(calculation_id, data, path):
     concentration_times = ReadConcentration(path).read_times()
     drawdown_times = ReadDrawdown(path).read_times()
 
+    total_times = [float(totim) for totim in heads.read_times()]
+
     times = {
         'start_date_time': data['dis']['start_datetime'],
         'time_unit': data['dis']['itmuni'],
-        'total_times': heads.read_times()
+        'total_times': total_times
     }
 
     layer_values = []
@@ -77,7 +79,7 @@ def get_calculation_details_json(calculation_id, data, path):
         'state': calculation['state'],
         'message': calculation['message'],
         'files': os.listdir(target_directory),
-        'times': str(times),
+        'times': times,
         'layer_values': layer_values
     })
 

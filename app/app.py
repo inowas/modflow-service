@@ -108,7 +108,7 @@ def is_valid(content):
         return False
 
     try:
-        mf_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mfPackages.schema.json")
+        mf_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mfPackages.json")
         mf_schema = json.loads(mf_schema_data.read())
         jsonschema.validate(instance=mf, schema=mf_schema)
     except jsonschema.exceptions.ValidationError:
@@ -116,7 +116,7 @@ def is_valid(content):
 
     if mt:
         try:
-            mt_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mtPackages.schema.json")
+            mt_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mtPackages.json")
             mt_schema = json.loads(mt_schema_data.read())
             jsonschema.validate(instance=mt, schema=mt_schema)
         except jsonschema.exceptions.ValidationError:

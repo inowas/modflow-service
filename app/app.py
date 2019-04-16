@@ -305,6 +305,71 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
         return json.dumps(drawdown.read_layer(totim, layer))
 
 
+@app.route('/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])
+@cross_origin()
+def get_results_budget(calculation_id, totim):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
+
+    totim = float(totim)
+
+    budget = ReadBudget(target_folder)
+    times = budget.read_times()
+    if totim not in times:
+        return abort(
+            404,
+            'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
+        )
+
+    return json.dumps({
+        'cumulative': budget.read_cumulative_budget(totim),
+        'incremental': budget.read_incremental_budget(totim)
+    })
+
+
+@app.route('/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
+           methods=['GET'])
+@cross_origin()
+def get_results_concentration(calculation_id, substance, layer, totim):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
+
+    layer = int(layer)
+    substance = int(substance)
+    totim = float(totim)
+
+    concentrations = ReadConcentration(target_folder)
+
+    nsub = concentrations.read_number_of_substances()
+    if substance >= nsub:
+        return abort(
+            404,
+            'Substance: ' + str(substance) + ' not available. Number of substances: ' + nsub + '.'
+        )
+
+    times = concentrations.read_times()
+    if totim not in times:
+        return abort(
+            404,
+            'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
+        )
+
+    nlay = concentrations.read_number_of_layers()
+    if layer >= nlay:
+        return abort(
+            404,
+            'Layer must be less then the overall number of layers (' + str(nlay) + ').'
+        )
+
+    return json.dumps(concentrations.read_layer(substance, totim, layer))
+
+
 @app.route('/list')
 def list():
     con = db_connect()

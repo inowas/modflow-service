@@ -1,9 +1,9 @@
-import os
+from datetime import datetime
 from flask import abort, Flask, request, redirect, render_template
 from flask_cors import CORS, cross_origin
-import urllib.request
+import os
 import sqlite3 as sql
-from datetime import datetime
+import urllib.request
 import json
 import jsonschema
 import uuid
@@ -16,6 +16,7 @@ from InowasFlopyAdapter.ReadHead import ReadHead
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
 UPLOAD_FOLDER = './uploads'
+SCHEMA_SERVER_URL = 'https://schema.inowas.com'
 
 app = Flask(__name__)
 CORS(app)
@@ -23,21 +24,33 @@ CORS(app)
 
 def db_init():
     conn = db_connect()
-    conn.execute(
-        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, message TEXT, created_at DATE, updated_at DATE)')
+
+    sql_command = """
+        CREATE TABLE IF NOT EXISTS calculations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            calculation_id STRING, 
+            state INTEGER, 
+            message TEXT, 
+            created_at DATE, 
+            updated_at DATE
+        )
+    """
+    conn.execute(sql_command)
 
 
 def db_connect():
     return sql.connect(DB_LOCATION)
 
 
+# noinspection SqlResolve
 def get_calculation_by_id(calculation_id):
     conn = db_connect()
     conn.row_factory = sql.Row
     cursor = conn.cursor()
 
-    cursor.execute('SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ?',
-                   (calculation_id,))
+    cursor.execute(
+        'SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ?', (calculation_id,)
+    )
     return cursor.fetchone()
 
 
@@ -108,7 +121,7 @@ def is_valid(content):
         return False
 
     try:
-        mf_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mfPackages.json")
+        mf_schema_data = urllib.request.urlopen('{}/modflow/packages/mfPackages.json'.format(SCHEMA_SERVER_URL))
         mf_schema = json.loads(mf_schema_data.read())
         jsonschema.validate(instance=mf, schema=mf_schema)
     except jsonschema.exceptions.ValidationError:
@@ -116,7 +129,7 @@ def is_valid(content):
 
     if mt:
         try:
-            mt_schema_data = urllib.request.urlopen("https://schema.inowas.com/modflow/packages/mtPackages.json")
+            mt_schema_data = urllib.request.urlopen('{}/modflow/packages/mtPackages.json'.format(SCHEMA_SERVER_URL))
             mt_schema = json.loads(mt_schema_data.read())
             jsonschema.validate(instance=mt, schema=mt_schema)
         except jsonschema.exceptions.ValidationError:
@@ -125,10 +138,11 @@ def is_valid(content):
     return True
 
 
+# noinspection SqlResolve
 def insert_new_calculation(calculation_id):
     with db_connect() as con:
         cur = con.cursor()
-        cur.execute("INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)",
+        cur.execute('INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)',
                     (calculation_id, 0, datetime.now(), datetime.now()))
 
 
@@ -153,11 +167,11 @@ def upload_file():
         if 'multipart/form-data' in request.content_type:
             # check if the post request has the file part
             if 'file' not in request.files:
-                return 'No file uploaded'
-            uploaded_file = request.files['file']
+                abort(415, 'No file uploaded')
 
+            uploaded_file = request.files['file']
             if uploaded_file.filename == '':
-                return 'No selected file'
+                abort(415, 'No selected file')
 
             temp_filename = str(uuid.uuid4()) + '.json'
             temp_file = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
@@ -167,14 +181,14 @@ def upload_file():
 
             if not is_valid(content):
                 os.remove(temp_file)
-                return 'This JSON file does not match with the MODFLOW JSON Schema'
+                abort(422, 'This JSON file does not match with the MODFLOW JSON Schema')
 
             calculation_id = content.get("calculation_id")
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')
 
             if os.path.exists(modflow_file):
-                return 'Model with calculationId: ' + calculation_id + ' already exits.'
+                abort(422, 'Model with calculationId: {} already exits.'.format(calculation_id))
 
             os.makedirs(target_directory)
             with open(modflow_file, 'w') as outfile:
@@ -188,7 +202,7 @@ def upload_file():
             content = request.get_json(force=True)
 
             if not is_valid(content):
-                return 'Content is not valid.'
+                abort(422, 'Content is not valid.')
 
             calculation_id = content.get('calculation_id')
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -264,25 +278,21 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
     layer = int(layer)
 
     if type not in permitted_types:
-        return abort(404, 'Type: ' + type + ' not in the list of permitted types. Permitted types are: ' + ", ".join(
-            permitted_types))
+        abort(404,
+              'Type: {} not in the list of permitted types. \
+              Permitted types are: {}.'.format(type, ", ".join(permitted_types))
+              )
 
     if type == 'head':
         heads = ReadHead(target_folder)
         times = heads.read_times()
 
         if totim not in times:
-            return abort(
-                404,
-                'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
-            )
+            abort(404, 'Totim: {} not available. Available totims are: {}'.format(totim, ", ".join(map(str, times))))
 
         nlay = heads.read_number_of_layers()
         if layer >= nlay:
-            return abort(
-                404,
-                'Layer must be less then the overall number of layers (' + str(nlay) + ').'
-            )
+            abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
         return json.dumps(heads.read_layer(totim, layer))
 
@@ -290,17 +300,11 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
         drawdown = ReadDrawdown(target_folder)
         times = drawdown.read_times()
         if totim not in times:
-            return abort(
-                404,
-                'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
-            )
+            abort(404, 'Totim: {} not available. Available totims are: {}'.format(totim, ", ".join(map(str, times))))
 
         nlay = drawdown.read_number_of_layers()
         if layer >= nlay:
-            return abort(
-                404,
-                'Layer must be less then the overall number of layers (' + str(nlay) + ').'
-            )
+            return abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
         return json.dumps(drawdown.read_layer(totim, layer))
 
@@ -312,17 +316,14 @@ def get_results_budget(calculation_id, totim):
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
     if not os.path.exists(modflow_file):
-        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
 
     totim = float(totim)
 
     budget = ReadBudget(target_folder)
     times = budget.read_times()
     if totim not in times:
-        return abort(
-            404,
-            'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
-        )
+        abort(404, 'Totim: {} not available. Available totims are: {}'.format(totim, ", ".join(map(str, times))))
 
     return json.dumps({
         'cumulative': budget.read_cumulative_budget(totim),
@@ -338,7 +339,7 @@ def get_results_concentration(calculation_id, substance, layer, totim):
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
     if not os.path.exists(modflow_file):
-        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
 
     layer = int(layer)
     substance = int(substance)
@@ -348,35 +349,27 @@ def get_results_concentration(calculation_id, substance, layer, totim):
 
     nsub = concentrations.read_number_of_substances()
     if substance >= nsub:
-        return abort(
-            404,
-            'Substance: ' + str(substance) + ' not available. Number of substances: ' + nsub + '.'
-        )
+        abort(404, 'Substance: {} not available. Number of substances: {}.'.format(substance, nsub))
 
     times = concentrations.read_times()
     if totim not in times:
-        return abort(
-            404,
-            'Totim: ' + str(totim) + ' not available. Available totims are: ' + ", ".join(map(str, times))
-        )
+        abort(404, 'Totim: {} not available. Available totims are: {}'.format(totim, ", ".join(map(str, times))))
 
     nlay = concentrations.read_number_of_layers()
     if layer >= nlay:
-        return abort(
-            404,
-            'Layer must be less then the overall number of layers (' + str(nlay) + ').'
-        )
+        return abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
     return json.dumps(concentrations.read_layer(substance, totim, layer))
 
 
+# noinspection SqlResolve
 @app.route('/list')
 def list():
     con = db_connect()
     con.row_factory = sql.Row
 
     cur = con.cursor()
-    cur.execute("select * from calculations")
+    cur.execute('select * from calculations')
 
     rows = cur.fetchall()
     return render_template("list.html", rows=rows)

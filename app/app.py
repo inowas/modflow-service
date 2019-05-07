@@ -230,7 +230,7 @@ def upload_file():
 def calculation_details(calculation_id):
     modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
     if not os.path.exists(modflow_file):
-        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
 
     data = read_json(modflow_file).get('data').get('mf')
     path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -247,7 +247,7 @@ def get_file(calculation_id, file_name):
     target_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, file_name)
 
     if not os.path.exists(target_file):
-        return abort(404, {'message': 'File with name ' + file_name + ' not found.'})
+        abort(404, {'message': 'File with name {} not found.'.format(file_name)})
 
     if is_binary(target_file):
         return json.dumps({
@@ -270,7 +270,7 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
     if not os.path.exists(modflow_file):
-        return abort(404, 'Calculation with id: ' + calculation_id + ' not found.')
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
 
     permitted_types = ['head', 'drawdown']
 
@@ -304,7 +304,7 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
 
         nlay = drawdown.read_number_of_layers()
         if layer >= nlay:
-            return abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
+            abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
         return json.dumps(drawdown.read_layer(totim, layer))
 
@@ -357,7 +357,7 @@ def get_results_concentration(calculation_id, substance, layer, totim):
 
     nlay = concentrations.read_number_of_layers()
     if layer >= nlay:
-        return abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
+        abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
     return json.dumps(concentrations.read_layer(substance, totim, layer))
 

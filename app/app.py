@@ -9,6 +9,9 @@ import json
 import jsonschema
 import uuid
 
+import time
+import random
+
 from InowasFlopyAdapter.ReadBudget import ReadBudget
 from InowasFlopyAdapter.ReadConcentration import ReadConcentration
 from InowasFlopyAdapter.ReadDrawdown import ReadDrawdown
@@ -20,11 +23,40 @@ UPLOAD_FOLDER = './uploads'
 SCHEMA_SERVER_URL = 'https://schema.inowas.com'
 
 app = Flask(__name__)
+PrometheusMetrics(app)
 CORS(app)
-metrics = PrometheusMetrics(app)
 
-# static information as metric
-metrics.info('app_info', 'Application info', version='1.0.3')
+endpoints = ('one', 'two', 'three', 'four', 'five', 'error')
+
+
+@app.route('/one')
+def first_route():
+    time.sleep(random.random() * 0.2)
+    return 'ok'
+
+
+@app.route('/two')
+def the_second():
+    time.sleep(random.random() * 0.4)
+    return 'ok'
+
+
+@app.route('/three')
+def test_3rd():
+    time.sleep(random.random() * 0.6)
+    return 'ok'
+
+
+@app.route('/four')
+def fourth_one():
+    time.sleep(random.random() * 0.8)
+    return 'ok'
+
+
+@app.route('/error')
+def oops():
+    return ':(', 500
+
 
 
 def db_init():
@@ -268,7 +300,7 @@ def get_file(calculation_id, file_name):
         })
 
 
-@app.route('/<calculation_id>/results/types/<type>/layers/<layer>/totims/<totim>', methods=['GET'])
+@app.route('/calculation/<calculation_id>/results/types/<type>/layers/<layer>/totims/<totim>', methods=['GET'])
 @cross_origin()
 def get_results_head_drawdown(calculation_id, type, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -314,7 +346,7 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
         return json.dumps(drawdown.read_layer(totim, layer))
 
 
-@app.route('/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])
+@app.route('/calculation/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])
 @cross_origin()
 def get_results_budget(calculation_id, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -336,8 +368,9 @@ def get_results_budget(calculation_id, totim):
     })
 
 
-@app.route('/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
-           methods=['GET'])
+@app.route(
+    '/calculation/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
+    methods=['GET'])
 @cross_origin()
 def get_results_concentration(calculation_id, substance, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)

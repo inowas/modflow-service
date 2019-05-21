@@ -4,14 +4,15 @@ Flask==1.0.2
 Flask-Cors==3.0.7
 flopy==3.2.10
 itsdangerous==1.1.0
-Jinja2==2.10
+Jinja2==2.10.1
 jsonschema==3.0.1
 MarkupSafe==1.1.1
 pbr==5.1.1
+prometheus-flask-exporter==0.8.0
 pyrsistent==0.14.11
 six==1.11.0
 stevedore==1.30.0
-urllib3==1.24.1
+urllib3==1.24.2
 virtualenv==16.1.0
 virtualenv-clone==0.4.0
 virtualenvwrapper==4.8.2

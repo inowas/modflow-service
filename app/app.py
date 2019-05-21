@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import abort, Flask, request, redirect, render_template
 from flask_cors import CORS, cross_origin
 import os
+from prometheus_flask_exporter import PrometheusMetrics
 import sqlite3 as sql
 import urllib.request
 import json
@@ -20,6 +21,10 @@ SCHEMA_SERVER_URL = 'https://schema.inowas.com'
 
 app = Flask(__name__)
 CORS(app)
+metrics = PrometheusMetrics(app)
+
+# static information as metric
+metrics.info('app_info', 'Application info', version='1.0.3')
 
 
 def db_init():
@@ -383,7 +388,7 @@ if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
-    app.debug = True
+    app.debug = False
 
     db_init()
 

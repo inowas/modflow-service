@@ -25,8 +25,10 @@ app = Flask(__name__)
 CORS(app)
 metrics = PrometheusMetrics(app)
 
-g_200 = prometheus_client.Gauge('number_of_calculated_models_200', 'Description of counter')
-g_400 = prometheus_client.Gauge('number_of_calculated_models_400', 'Description of counter')
+g_0 = prometheus_client.Gauge('number_of_calculated_models_0', 'Calculations in queue')
+g_100 = prometheus_client.Gauge('number_of_calculated_models_100', 'Calculations in progress')
+g_200 = prometheus_client.Gauge('number_of_calculated_models_200', 'Calculations finished with success')
+g_400 = prometheus_client.Gauge('number_of_calculated_models_400', 'Calculations finished with error')
 
 
 def db_init():
@@ -396,6 +398,8 @@ def list():
 
 @app.route('/metrics')
 def metrics():
+    g_0.set(get_number_of_calculations(0))
+    g_100.set(get_number_of_calculations(100))
     g_200.set(get_number_of_calculations(200))
     g_400.set(get_number_of_calculations(400))
     CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')

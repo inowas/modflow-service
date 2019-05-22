@@ -283,7 +283,7 @@ def get_file(calculation_id, file_name):
         })
 
 
-@app.route('/calculation/<calculation_id>/results/types/<type>/layers/<layer>/totims/<totim>', methods=['GET'])
+@app.route('/<calculation_id>/results/types/<type>/layers/<layer>/totims/<totim>', methods=['GET'])
 @cross_origin()
 def get_results_head_drawdown(calculation_id, type, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -329,7 +329,7 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
         return json.dumps(drawdown.read_layer(totim, layer))
 
 
-@app.route('/calculation/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])
+@app.route('/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])
 @cross_origin()
 def get_results_budget(calculation_id, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -352,7 +352,7 @@ def get_results_budget(calculation_id, totim):
 
 
 @app.route(
-    '/calculation/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
+    '/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
     methods=['GET'])
 @cross_origin()
 def get_results_concentration(calculation_id, substance, layer, totim):

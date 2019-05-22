@@ -4,8 +4,6 @@ services:
   app:
     build: ./app
     restart: always
-    networks:
-      - web
     volumes:
       - ./app:/app
       - ./db:/db
@@ -21,7 +19,3 @@ services:
       - ./db:/db
       - ./modflow-data:/modflow
     command: ["python", "worker.py"]
-
-networks:
-  web:
-    external: true

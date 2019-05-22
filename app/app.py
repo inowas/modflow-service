@@ -1,7 +1,9 @@
 from datetime import datetime
-from flask import abort, Flask, request, redirect, render_template
+from flask import abort, Flask, request, redirect, render_template, Response
 from flask_cors import CORS, cross_origin
 import os
+
+import prometheus_client
 from prometheus_flask_exporter import PrometheusMetrics
 import sqlite3 as sql
 import urllib.request
@@ -23,8 +25,10 @@ app = Flask(__name__)
 CORS(app)
 metrics = PrometheusMetrics(app)
 
-# static information as metric
-metrics.info('app_info', 'Application info', version='1.0.3')
+g_0 = prometheus_client.Gauge('number_of_calculated_models_0', 'Calculations in queue')
+g_100 = prometheus_client.Gauge('number_of_calculated_models_100', 'Calculations in progress')
+g_200 = prometheus_client.Gauge('number_of_calculated_models_200', 'Calculations finished with success')
+g_400 = prometheus_client.Gauge('number_of_calculated_models_400', 'Calculations finished with error')
 
 
 def db_init():
@@ -57,6 +61,17 @@ def get_calculation_by_id(calculation_id):
         'SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ?', (calculation_id,)
     )
     return cursor.fetchone()
+
+
+def get_number_of_calculations(state=200):
+    conn = db_connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        'SELECT Count() FROM calculations WHERE state = ?', (state,)
+    )
+
+    return cursor.fetchone()[0]
 
 
 def get_calculation_details_json(calculation_id, data, path):
@@ -336,8 +351,9 @@ def get_results_budget(calculation_id, totim):
     })
 
 
-@app.route('/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
-           methods=['GET'])
+@app.route(
+    '/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
+    methods=['GET'])
 @cross_origin()
 def get_results_concentration(calculation_id, substance, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -380,6 +396,16 @@ def list():
     return render_template("list.html", rows=rows)
 
 
+@app.route('/metrics')
+def metrics():
+    g_0.set(get_number_of_calculations(0))
+    g_100.set(get_number_of_calculations(100))
+    g_200.set(get_number_of_calculations(200))
+    g_400.set(get_number_of_calculations(400))
+    CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
+    return Response(prometheus_client.generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
@@ -388,8 +414,6 @@ if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
-    app.debug = False
 
     db_init()
-
     app.run(debug=True, host='0.0.0.0')

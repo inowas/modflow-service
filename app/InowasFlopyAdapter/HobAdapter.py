@@ -60,7 +60,7 @@ class HobAdapter:
             "hobdry": 0,
             "tomulth": 1.0,
             "obs_data": None,
-            "hobname": None,
+            "hobname": 'mf.hob.out',
             "extension": 'hob',
             "unitnumber": None,
             "filenames": None

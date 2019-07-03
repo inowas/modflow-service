@@ -18,4 +18,4 @@ services:
       - ./worker:/app
       - ./db:/db
       - ./modflow-data:/modflow
-    command: ["python", "worker.py"]
+    command: ["python","-u","worker.py"]

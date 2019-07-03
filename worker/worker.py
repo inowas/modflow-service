@@ -7,7 +7,6 @@ from time import sleep
 
 from InowasFlopyAdapter.InowasFlopyCalculationAdapter import InowasFlopyCalculationAdapter
 
-
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
 
@@ -61,12 +60,17 @@ def calculate(idx, calculation_id):
     print('Version: %s' % version)
     print("Running flopy calculation for model-id '{0}' with calculation-id '{1}'".format(model_id, calculation_id))
 
-    data['mf']['mf']['modelname'] = 'mf'
-    data['mf']['mf']['model_ws'] = target_directory
+    if 'mf' in data:
+        data['mf']['mf']['modelname'] = 'mf'
+        data['mf']['mf']['model_ws'] = target_directory
 
     if 'mt' in data:
         data['mt']['mt']['modelname'] = 'mt'
         data['mt']['mt']['model_ws'] = target_directory
+
+    if 'swt' in data:
+        data['swt']['swt']['modelname'] = 'swt'
+        data['swt']['swt']['model_ws'] = target_directory
 
     conn = db_connect()
     cur = conn.cursor()
@@ -83,7 +87,6 @@ def calculate(idx, calculation_id):
 
 def run():
     while True:
-        print(str(datetime.now()) + ': Waiting....' + "\r")
         row = get_next_new_calculation_job()
 
         if not row:

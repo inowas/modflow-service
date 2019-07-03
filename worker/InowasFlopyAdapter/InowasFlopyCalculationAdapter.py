@@ -255,7 +255,7 @@ class InowasFlopyCalculationAdapter:
         if name == 'mpbas':
             self._model = MpBasAdapter(content).get_package(self._model)
         if name == 'mpsim':
-            self._model = MpAdapter(content).get_package()
+            self._model = MpSimAdapter(content).get_package(self._model)
 
         # Seawat packages
         if name == 'swt':

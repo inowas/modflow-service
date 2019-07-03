@@ -18,6 +18,7 @@ from .NwtAdapter import NwtAdapter
 from .OcAdapter import OcAdapter
 from .PcgAdapter import PcgAdapter
 from .RchAdapter import RchAdapter
+from .EvtAdapter import EvtAdapter
 from .RivAdapter import RivAdapter
 from .ReadBudget import ReadBudget
 from .ReadConcentration import ReadConcentration
@@ -170,14 +171,6 @@ class InowasFlopyCalculationAdapter:
 
     def create_package(self, name, content):
 
-        # Seawat packages
-        if name == 'swt':
-            self._model = SwtAdapter(content).get_package()
-        if name == 'vdf':
-            VdfAdapter(content).get_package(self._model)
-        if name == 'vsc':
-            VscAdapter(content).get_package(self._model)
-
         # Modflow packages
         if name == 'mf':
             self._model = MfAdapter(content).get_package()
@@ -201,6 +194,8 @@ class InowasFlopyCalculationAdapter:
             WelAdapter(content).get_package(self._model)
         if name == 'rch':
             RchAdapter(content).get_package(self._model)
+        if name == 'evt':
+            EvtAdapter(content).get_package(self._model)
         if name == 'chd':
             ChdAdapter(content).get_package(self._model)
         if name == 'ghb':
@@ -235,6 +230,14 @@ class InowasFlopyCalculationAdapter:
             TobAdapter(content).get_package(self._model)
         if name == 'uzt':
             UztAdapter(content).get_package(self._model)
+
+        # Seawat packages
+        if name == 'swt':
+            self._model = SwtAdapter(content).get_package()
+        if name == 'vdf':
+            VdfAdapter(content).get_package(self._model)
+        if name == 'vsc':
+            VscAdapter(content).get_package(self._model)
 
     def response(self):
         key = 'mf'

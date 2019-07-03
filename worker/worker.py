@@ -68,6 +68,10 @@ def calculate(idx, calculation_id):
         data['mt']['mt']['modelname'] = 'mt'
         data['mt']['mt']['model_ws'] = target_directory
 
+    if 'mp' in data:
+        data['mp']['mp']['modelname'] = 'mp'
+        data['mp']['mp']['model_ws'] = target_directory
+
     if 'swt' in data:
         data['swt']['swt']['modelname'] = 'swt'
         data['swt']['swt']['model_ws'] = target_directory

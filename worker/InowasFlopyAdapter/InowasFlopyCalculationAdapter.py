@@ -27,6 +27,11 @@ from .ReadHead import ReadHead
 from .UpwAdapter import UpwAdapter
 from .WelAdapter import WelAdapter
 from .LmtAdapter import LmtAdapter
+
+from .MpAdapter import MpAdapter
+from .MpBasAdapter import MpBasAdapter
+from .MpSimAdapter import MpSimAdapter
+
 from .MtAdapter import MtAdapter
 from .AdvAdapter import AdvAdapter
 from .BtnAdapter import BtnAdapter
@@ -76,8 +81,13 @@ class InowasFlopyCalculationAdapter:
         'vdf', 'vsc'
     ]
 
+    mp_package_order = [
+        'mp', 'bas', 'sim'
+    ]
+
     def __init__(self, version, data, uuid):
         self._mf_data = data.get('mf')
+        self._mp_data = data.get('mp')
         self._mt_data = data.get('mt')
         self._swt_data = data.get('swt')
         self._version = version
@@ -122,6 +132,14 @@ class InowasFlopyCalculationAdapter:
                 self.create_model(self.mt_package_order, package_content)
                 self.write_input_model(self._model)
                 self._success, report = self.run_model(self._model, model_type='mt')
+                self._report += report
+
+            # ModPath6 calculation
+            if self._mp_data is not None:
+                package_content = self.read_packages(self._mp_data)
+                self.create_model(self.mp_package_order, package_content)
+                self.write_input_model(self._model)
+                self._success, report = self.run_model(self._model, model_type='mp')
                 self._report += report
 
     @staticmethod
@@ -230,6 +248,14 @@ class InowasFlopyCalculationAdapter:
             TobAdapter(content).get_package(self._model)
         if name == 'uzt':
             UztAdapter(content).get_package(self._model)
+
+        # ModPath packages
+        if name == 'mp':
+            self._model = MpAdapter(content).get_package()
+        if name == 'mpbas':
+            self._model = MpBasAdapter(content).get_package(self._model)
+        if name == 'mpsim':
+            self._model = MpAdapter(content).get_package()
 
         # Seawat packages
         if name == 'swt':

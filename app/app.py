@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import abort, Flask, request, redirect, render_template, Response
+from flask import abort, Flask, request, redirect, render_template, Response, send_file
 from flask_cors import CORS, cross_origin
 import os
 
@@ -10,6 +10,8 @@ import urllib.request
 import json
 import jsonschema
 import uuid
+import zipfile
+import io
 
 from InowasFlopyAdapter.ReadBudget import ReadBudget
 from InowasFlopyAdapter.ReadConcentration import ReadConcentration
@@ -381,6 +383,26 @@ def get_results_concentration(calculation_id, substance, layer, totim):
         abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
     return json.dumps(concentrations.read_layer(substance, totim, layer))
+
+
+@app.route('/<calculation_id>/download', methods=['GET'])
+@cross_origin()
+def get_download_model(calculation_id):
+    os.chdir(os.path.join(app.config['MODFLOW_FOLDER'], calculation_id))
+    data = io.BytesIO()
+    with zipfile.ZipFile(data, mode='w') as z:
+        for root, dirs, files in os.walk("."):
+            for filename in files:
+                if not filename.endswith('.json'):
+                    z.write(filename)
+
+    data.seek(0)
+    return send_file(
+        data,
+        mimetype='application/zip',
+        as_attachment=True,
+        attachment_filename='model-calculation-{}.zip'.format(calculation_id)
+    )
 
 
 # noinspection SqlResolve

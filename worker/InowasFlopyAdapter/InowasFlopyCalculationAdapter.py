@@ -9,6 +9,7 @@ EMail: ralf.junghanns@gmail.com
 from .BasAdapter import BasAdapter
 from .ChdAdapter import ChdAdapter
 from .DisAdapter import DisAdapter
+from .DrnAdapter import DrnAdapter
 from .GhbAdapter import GhbAdapter
 from .HobAdapter import HobAdapter
 from .HobStatistics import HobStatistics
@@ -62,7 +63,7 @@ class InowasFlopyCalculationAdapter:
 
     mf_package_order = [
         'mf', 'dis', 'bas', 'bas6',
-        'riv', 'wel', 'rch', 'chd', 'ghb', 'hob',
+        'chd', 'evt', 'drn', 'ghb', 'hob', 'rch', 'riv', 'wel',
         'lpf', 'upw', 'pcg', 'nwt', 'oc', 'lmt', 'lmt6'
     ]
 
@@ -194,6 +195,8 @@ class InowasFlopyCalculationAdapter:
             self._model = MfAdapter(content).get_package()
         if name == 'dis':
             DisAdapter(content).get_package(self._model)
+        if name == 'drn':
+            DrnAdapter(content).get_package(self._model)
         if name == 'bas' or name == 'bas6':
             BasAdapter(content).get_package(self._model)
         if name == 'lpf':

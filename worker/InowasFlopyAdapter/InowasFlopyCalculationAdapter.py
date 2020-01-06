@@ -67,7 +67,7 @@ class InowasFlopyCalculationAdapter:
 
     mf_package_order = [
         'mf', 'dis', 'bas', 'bas6',
-        'chd', 'evt', 'drn', 'ghb', 'hob', 'rch', 'riv', 'wel',
+        'chd', 'evt', 'drn', 'fhb', 'ghb', 'hob', 'rch', 'riv', 'wel',
         'lpf', 'upw', 'pcg', 'nwt', 'oc', 'lmt', 'lmt6'
     ]
 

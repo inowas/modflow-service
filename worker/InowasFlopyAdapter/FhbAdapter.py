@@ -24,20 +24,9 @@ class FhbAdapter:
     def merge(self):
         default = self.default()
         for key in self._data:
-            if key == 'ds5' or key == 'ds7':
-                default[key] = self.to_dict(self._data[key])
-                continue
-
             default[key] = self._data[key]
-        return default
 
-    def to_dict(self, data):
-        if type(data) == list:
-            spd_dict = {}
-            for stress_period, record in enumerate(data):
-                spd_dict[stress_period] = record
-            return spd_dict
-        return data
+        return default
 
     def get_package(self, _mf):
         content = self.merge()

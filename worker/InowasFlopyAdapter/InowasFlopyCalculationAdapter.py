@@ -10,6 +10,7 @@ from .BasAdapter import BasAdapter
 from .ChdAdapter import ChdAdapter
 from .DisAdapter import DisAdapter
 from .DrnAdapter import DrnAdapter
+from .FhbAdapter import FhbAdapter
 from .GhbAdapter import GhbAdapter
 from .HobAdapter import HobAdapter
 from .HobStatistics import HobStatistics
@@ -63,7 +64,7 @@ class InowasFlopyCalculationAdapter:
 
     mf_package_order = [
         'mf', 'dis', 'bas', 'bas6',
-        'chd', 'evt', 'drn', 'ghb', 'hob', 'rch', 'riv', 'wel',
+        'chd', 'evt', 'drn', 'fhb', 'ghb', 'hob', 'rch', 'riv', 'wel',
         'lpf', 'upw', 'pcg', 'nwt', 'oc', 'lmt', 'lmt6'
     ]
 
@@ -219,6 +220,8 @@ class InowasFlopyCalculationAdapter:
             EvtAdapter(content).get_package(self._model)
         if name == 'chd':
             ChdAdapter(content).get_package(self._model)
+        if name == 'fhb':
+            FhbAdapter(content).get_package(self._model)
         if name == 'ghb':
             GhbAdapter(content).get_package(self._model)
         if name == 'hob':

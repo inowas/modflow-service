@@ -28,8 +28,11 @@ class MpAdapter:
                 default[key] = self._data[key]
         return default
 
-    def get_package(self):
+    def get_package(self, mf_model):
         content = self.merge()
+        content["modflowmodel"] = mf_model
+        content["budget_file"] = 'mf.list'
+        print(content)
         return mp.Modpath(
             **content
         )

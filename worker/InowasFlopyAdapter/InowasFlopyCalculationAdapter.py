@@ -10,6 +10,7 @@ from .BasAdapter import BasAdapter
 from .ChdAdapter import ChdAdapter
 from .DisAdapter import DisAdapter
 from .DrnAdapter import DrnAdapter
+from .FhbAdapter import FhbAdapter
 from .GhbAdapter import GhbAdapter
 from .HobAdapter import HobAdapter
 from .HobStatistics import HobStatistics
@@ -56,7 +57,10 @@ class InowasFlopyCalculationAdapter:
     _version = None
     _uuid = None
 
-    _model = None
+    _mf_model = None
+    _mt_model = None
+    _swt_model = None
+    _mp_model = None
 
     _report = ''
     _success = False
@@ -83,14 +87,14 @@ class InowasFlopyCalculationAdapter:
     ]
 
     mp_package_order = [
-        'mp', 'bas', 'sim'
+        'mp', 'mpbas', 'mpsim'
     ]
 
     def __init__(self, version, data, uuid):
         self._mf_data = data.get('mf')
-        self._mp_data = data.get('mp')
         self._mt_data = data.get('mt')
         self._swt_data = data.get('swt')
+        self._mp_data = data.get('mp')
         self._version = version
         self._uuid = uuid
 
@@ -105,13 +109,13 @@ class InowasFlopyCalculationAdapter:
 
             package_content = self.read_packages(package_data)
             self.create_model(self.swt_package_order, package_content)
-            self.write_input_model(self._model)
-            self._success, report = self.run_model(self._model, model_type='swt')
+            self.write_input_model(self._swt_model)
+            self._success, report = self.run_model(self._swt_model, model_type='swt')
             self._report += report
 
             if 'hob' in self._mf_data['packages']:
                 print('Calculate hob-statistics and write to file %s.hob.stat' % uuid)
-                self.run_hob_statistics(self._model)
+                self.run_hob_statistics(self._mf_model)
 
             return
 
@@ -119,28 +123,28 @@ class InowasFlopyCalculationAdapter:
         if self._mf_data is not None:
             package_content = self.read_packages(self._mf_data)
             self.create_model(self.mf_package_order, package_content)
-            self.write_input_model(self._model)
-            self.success, report = self.run_model(self._model, model_type='mf')
+            self.write_input_model(self._mf_model)
+            self.success, report = self.run_model(self._mf_model, model_type='mf')
             self._report += report
 
             if 'hob' in self._mf_data['packages']:
                 print('Calculate hob-statistics and write to file %s.hob.stat' % uuid)
-                self.run_hob_statistics(self._model)
+                self.run_hob_statistics(self._mf_model)
 
             # Mt3d calculation
             if self._mt_data is not None:
                 package_content = self.read_packages(self._mt_data)
                 self.create_model(self.mt_package_order, package_content)
-                self.write_input_model(self._model)
-                self._success, report = self.run_model(self._model, model_type='mt')
+                self.write_input_model(self._mt_model)
+                self._success, report = self.run_model(self._mt_model, model_type='mt')
                 self._report += report
 
             # ModPath6 calculation
             if self._mp_data is not None:
                 package_content = self.read_packages(self._mp_data)
                 self.create_model(self.mp_package_order, package_content)
-                self.write_input_model(self._model)
-                self._success, report = self.run_model(self._model, model_type='mp')
+                self.write_input_model(self._mp_model)
+                self._success, report = self.run_model(self._mp_model, model_type='mp')
                 self._report += report
 
     @staticmethod
@@ -182,91 +186,89 @@ class InowasFlopyCalculationAdapter:
         print('Calculate hob-statistics for model %s' % name)
         HobStatistics(model_ws, name).write_to_file()
 
-    def check_model(self):
-        if self._model is not None:
-            self._model.check()
-        if self._model is not None:
-            self._model.check()
-
     def create_package(self, name, content):
 
         # Modflow packages
         if name == 'mf':
-            self._model = MfAdapter(content).get_package()
+            self._mf_model = MfAdapter(content).get_package()
         if name == 'dis':
-            DisAdapter(content).get_package(self._model)
+            DisAdapter(content).get_package(self._mf_model)
         if name == 'drn':
-            DrnAdapter(content).get_package(self._model)
+            DrnAdapter(content).get_package(self._mf_model)
         if name == 'bas' or name == 'bas6':
-            BasAdapter(content).get_package(self._model)
+            BasAdapter(content).get_package(self._mf_model)
         if name == 'lpf':
-            LpfAdapter(content).get_package(self._model)
+            LpfAdapter(content).get_package(self._mf_model)
         if name == 'upw':
-            UpwAdapter(content).get_package(self._model)
+            UpwAdapter(content).get_package(self._mf_model)
         if name == 'pcg':
-            PcgAdapter(content).get_package(self._model)
+            PcgAdapter(content).get_package(self._mf_model)
         if name == 'nwt':
-            NwtAdapter(content).get_package(self._model)
+            NwtAdapter(content).get_package(self._mf_model)
         if name == 'oc':
-            OcAdapter(content).get_package(self._model)
+            OcAdapter(content).get_package(self._mf_model)
         if name == 'riv':
-            RivAdapter(content).get_package(self._model)
+            RivAdapter(content).get_package(self._mf_model)
         if name == 'wel':
-            WelAdapter(content).get_package(self._model)
+            WelAdapter(content).get_package(self._mf_model)
         if name == 'rch':
-            RchAdapter(content).get_package(self._model)
+            RchAdapter(content).get_package(self._mf_model)
         if name == 'evt':
-            EvtAdapter(content).get_package(self._model)
+            EvtAdapter(content).get_package(self._mf_model)
         if name == 'chd':
-            ChdAdapter(content).get_package(self._model)
+            ChdAdapter(content).get_package(self._mf_model)
         if name == 'ghb':
-            GhbAdapter(content).get_package(self._model)
+            GhbAdapter(content).get_package(self._mf_model)
+        if name == 'fhb':
+            FhbAdapter(content).get_package(self._mf_model)
         if name == 'hob':
-            HobAdapter(content).get_package(self._model)
+            HobAdapter(content).get_package(self._mf_model)
         if name == 'lmt':
-            LmtAdapter(content).get_package(self._model)
+            LmtAdapter(content).get_package(self._mf_model)
 
         # MT3D packages
         if name == 'mt':
-            self._model = MtAdapter(content).get_package(self._model)
+            self._mt_model = MtAdapter(content).get_package(self._mf_model)
         if name == 'adv':
-            AdvAdapter(content).get_package(self._model)
+            AdvAdapter(content).get_package(self._mt_model)
         if name == 'btn':
-            BtnAdapter(content).get_package(self._model)
+            BtnAdapter(content).get_package(self._mt_model)
         if name == 'dsp':
-            DspAdapter(content).get_package(self._model)
+            DspAdapter(content).get_package(self._mt_model)
         if name == 'gcg':
-            GcgAdapter(content).get_package(self._model)
+            GcgAdapter(content).get_package(self._mt_model)
         if name == 'lkt':
-            LktAdapter(content).get_package(self._model)
+            LktAdapter(content).get_package(self._mt_model)
         if name == 'phc':
-            PhcAdapter(content).get_package(self._model)
+            PhcAdapter(content).get_package(self._mt_model)
         if name == 'rct':
-            RctAdapter(content).get_package(self._model)
+            RctAdapter(content).get_package(self._mt_model)
         if name == 'sft':
-            SftAdapter(content).get_package(self._model)
+            SftAdapter(content).get_package(self._mt_model)
         if name == 'ssm':
-            SsmAdapter(content).get_package(self._model)
+            SsmAdapter(content).get_package(self._mt_model)
         if name == 'tob':
-            TobAdapter(content).get_package(self._model)
+            TobAdapter(content).get_package(self._mt_model)
         if name == 'uzt':
-            UztAdapter(content).get_package(self._model)
-
-        # ModPath packages
-        if name == 'mp':
-            self._model = MpAdapter(content).get_package()
-        if name == 'mpbas':
-            self._model = MpBasAdapter(content).get_package(self._model)
-        if name == 'mpsim':
-            self._model = MpSimAdapter(content).get_package(self._model)
+            UztAdapter(content).get_package(self._mt_model)
 
         # Seawat packages
         if name == 'swt':
-            self._model = SwtAdapter(content).get_package()
+            self._swt_model = SwtAdapter(content).get_package()
         if name == 'vdf':
-            VdfAdapter(content).get_package(self._model)
+            VdfAdapter(content).get_package(self._swt_model)
         if name == 'vsc':
-            VscAdapter(content).get_package(self._model)
+            VscAdapter(content).get_package(self._swt_model)
+
+        # ModPath packages
+        if name == 'mp':
+            self._mp_model = MpAdapter(content).get_package(self._mf_model)
+        if name == 'mpbas':
+            bas = MpBasAdapter(content).get_package(self._mp_model)
+            print(bas)
+        if name == 'mpsim':
+            sim = MpSimAdapter(content).get_package(self._mp_model)
+            print(sim)
 
     def response(self):
         key = 'mf'

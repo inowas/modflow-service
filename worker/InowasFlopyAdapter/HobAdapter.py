@@ -45,6 +45,7 @@ class HobAdapter:
             print(o)
             obs.append(mf.HeadObservation(
                 model,
+                obsname=o['obsname'],
                 layer=o['layer'],
                 row=o['row'],
                 column=o['column'],

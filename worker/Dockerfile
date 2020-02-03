@@ -25,6 +25,7 @@ RUN mv ./temp/* /usr/local/bin
 WORKDIR /app
 
 RUN pip install flopy
+RUN pip install pandas
 RUN pip install scipy
 RUN pip install scikit-learn
 

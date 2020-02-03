@@ -18,9 +18,12 @@ class HobStatistics:
     def write_files(self):
         with open(self._output_stat_file, 'w') as outfile:
             json.dump(self.calculate(), outfile)
-        with open(self._output_json_file, 'w') as outfile:
+
+        try:
             df = pd.read_csv('./mf.hob.out', delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
             df.to_json(self._output_json_file, orient='records')
+        except:
+            pass
 
     @staticmethod
     def calculate_npf(x, n):

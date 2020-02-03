@@ -181,7 +181,7 @@ class InowasFlopyCalculationAdapter:
         name = model.name
 
         print('Calculate hob-statistics for model %s' % name)
-        HobStatistics(model_ws, name).write_to_file()
+        HobStatistics(model_ws, name).write_files()
 
     def check_model(self):
         if self._model is not None:

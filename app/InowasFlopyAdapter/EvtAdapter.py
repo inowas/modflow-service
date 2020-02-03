@@ -1,7 +1,7 @@
 import flopy.modflow as mf
 
 
-class RchAdapter:
+class EvtAdapter:
     _data = None
 
     def __init__(self, data):
@@ -30,7 +30,7 @@ class RchAdapter:
 
     def get_package(self, _mf):
         content = self.merge()
-        return mf.ModflowRch(
+        return mf.ModflowEvt(
             _mf,
             **content
         )
@@ -38,21 +38,29 @@ class RchAdapter:
     @staticmethod
     def default():
         return {
-            "nrchop": 3,
-            "ipakcb": 0,
-            "rech": 0,
-            "irch": 0,
-            "extension": 'rch',
-            "unitnumber": 19
+            "nevtop": 3,
+            "ipakcb": None,
+            "surf": 0.,
+            "evtr": 1e-3,
+            "exdp": 1.,
+            "ievt": 1,
+            "extension": 'evt',
+            "unitnumber": None,
+            "filenames": None,
+            "external": True
         }
 
     @staticmethod
     def read_package(package):
         return {
-            "nrchop": package.nrchop,
+            "nevtop": package.nevtop,
             "ipakcb": package.ipakcb,
-            "rech": package.rech,
-            "irch": package.irch,
+            "surf": package.surf,
+            "evtr": package.evtr,
+            "exdp": package.exdp,
+            "ievt": package.ievt,
             "extension": package.extension,
-            "unitnumber": package.unitnumber
+            "unitnumber": package.unitnumber,
+            "filenames": package.filenames,
+            "external": package.external
         }

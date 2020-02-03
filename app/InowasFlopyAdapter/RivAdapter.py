@@ -45,12 +45,7 @@ class RivAdapter:
         content = self.merge()
         return mf.ModflowRiv(
             _mf,
-            ipakcb=content['ipakcb'],
-            stress_period_data=content['stress_period_data'],
-            dtype=content['dtype'],
-            extension=content['extension'],
-            unitnumber=content['unitnumber'],
-            options=content['options']
+            **content
         )
 
     @staticmethod

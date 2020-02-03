@@ -37,7 +37,7 @@ class PhcAdapter:
 
     @staticmethod
     def default():
-        default = {
+        return {
             "os": 2,
             "temp": 25,
             "asbin": 0,
@@ -56,11 +56,10 @@ class PhcAdapter:
             "extension": 'phc',
             "unitnumber": None
         }
-        return default
 
     @staticmethod
     def read_package(package):
-        content = {
+        return {
             "os": package.os,
             "temp": package.temp,
             "asbin": package.asbin,
@@ -79,4 +78,3 @@ class PhcAdapter:
             "extension": package.extension,
             "unitnumber": package.unitnumber
         }
-        return content

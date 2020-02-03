@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import os
+import pandas as pd
 from scipy import stats
 from sklearn.metrics import r2_score
 
@@ -11,11 +12,15 @@ class HobStatistics:
         self._model_ws = model_ws
         self._name = name
         self._input_file = os.path.join(model_ws, name) + '.hob.out'
-        self._output_file = os.path.join(model_ws, name) + '.hob.stat'
+        self._output_stat_file = os.path.join(model_ws, name) + '.hob.stat'
+        self._output_json_file = os.path.join(model_ws, name) + '.hob.out.json'
 
-    def write_to_file(self):
-        with open(self._output_file, 'w') as outfile:
+    def write_files(self):
+        with open(self._output_stat_file, 'w') as outfile:
             json.dump(self.calculate(), outfile)
+        with open(self._output_json_file, 'w') as outfile:
+            df = pd.read_csv('./mf.hob.out', delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
+            df.to_json(self._output_json_file, orient='records')
 
     @staticmethod
     def calculate_npf(x, n):
@@ -61,7 +66,7 @@ class HobStatistics:
             rMax=np.max(np.abs(simulated - observed)),
             rMin=np.min(np.abs(simulated - observed)),
             rMean=np.mean(simulated - observed),
-            absRMean=np.mean(np.abs(simulated-observed)),
+            absRMean=np.mean(np.abs(simulated - observed)),
             sse=stats.sem(simulated - observed),
             rmse=np.sqrt(((simulated - observed) ** 2).mean()),
             R=stats.pearsonr(observed, simulated)[0],

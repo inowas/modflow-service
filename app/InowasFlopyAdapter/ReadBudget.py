@@ -28,7 +28,7 @@ class ReadBudget:
             values = {}
             for x in budget:
                 param = str(x[2].decode('UTF-8'))
-                values[param] = float(str(x[1]))
+                values[param] = str(x[1])
             return values
         except:
             return []
@@ -40,7 +40,7 @@ class ReadBudget:
             values = {}
             for x in budget:
                 param = str(x[2].decode('UTF-8'))
-                values[param] = float(str(x[1]))
+                values[param] = str(x[1])
             return values
         except:
             return []

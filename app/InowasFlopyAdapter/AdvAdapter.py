@@ -37,7 +37,7 @@ class AdvAdapter:
 
     @staticmethod
     def default():
-        default = {
+        return {
             "mixelm": 3,
             "percel": 0.75,
             "mxpart": 800000,
@@ -57,11 +57,10 @@ class AdvAdapter:
             "unitnumber": None,
             "filenames": None
         }
-        return default
 
     @staticmethod
     def read_package(package):
-        content = {
+        return {
             "mixelm": package.mixelm,
             "percel": package.percel,
             "mxpart": package.mxpart,
@@ -81,4 +80,3 @@ class AdvAdapter:
             "unitnumber": package.unit_number[0],
             # "filenames": package.filenames
         }
-        return content

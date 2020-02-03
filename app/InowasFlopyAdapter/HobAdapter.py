@@ -55,11 +55,11 @@ class HobAdapter:
     @staticmethod
     def default():
         default = {
-            "iuhobsv": None,
+            "iuhobsv": 1051,
             "hobdry": 0,
             "tomulth": 1.0,
             "obs_data": None,
-            "hobname": 'mf.hob.out',
+            "hobname": None,
             "extension": 'hob',
             "unitnumber": None,
             "filenames": None

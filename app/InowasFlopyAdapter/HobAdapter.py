@@ -40,9 +40,7 @@ class HobAdapter:
     @staticmethod
     def map_obs_data(model, observations):
         obs = []
-
         for o in observations:
-            print(o)
             obs.append(mf.HeadObservation(
                 model,
                 obsname=o['obsname'],

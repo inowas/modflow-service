@@ -20,7 +20,7 @@ class HobStatistics:
             json.dump(self.calculate(), outfile)
 
         try:
-            df = pd.read_csv('./mf.hob.out', delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
+            df = pd.read_csv(self._input_file, delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
             df.to_json(self._output_json_file, orient='records')
         except:
             pass

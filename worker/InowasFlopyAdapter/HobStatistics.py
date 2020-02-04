@@ -1,7 +1,6 @@
 import json
 import numpy as np
 import os
-import pandas as pd
 from scipy import stats
 from sklearn.metrics import r2_score
 
@@ -13,17 +12,10 @@ class HobStatistics:
         self._name = name
         self._input_file = os.path.join(model_ws, name) + '.hob.out'
         self._output_stat_file = os.path.join(model_ws, name) + '.hob.stat'
-        self._output_json_file = os.path.join(model_ws, name) + '.hob.out.json'
 
     def write_files(self):
         with open(self._output_stat_file, 'w') as outfile:
             json.dump(self.calculate(), outfile)
-
-        try:
-            df = pd.read_csv(self._input_file, delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
-            df.to_json(self._output_json_file, orient='records')
-        except:
-            pass
 
     @staticmethod
     def calculate_npf(x, n):

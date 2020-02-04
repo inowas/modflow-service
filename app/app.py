@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import abort, Flask, request, redirect, render_template, Response, send_file
 from flask_cors import CORS, cross_origin
+import pandas as pd
 import os
 
 import prometheus_client
@@ -383,6 +384,22 @@ def get_results_concentration(calculation_id, substance, layer, totim):
         abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
     return json.dumps(concentrations.read_layer(substance, totim, layer))
+
+
+@app.route('/<calculation_id>/results/types/observations', methods=['GET'])
+@cross_origin()
+def get_results_observations(calculation_id):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    hob_out_file = os.path.join(target_folder, 'mf.hob.out')
+
+    if not os.path.exists(hob_out_file):
+        abort(404, 'Head observations from calculation with id: {} not found.'.format(calculation_id))
+
+    try:
+        df = pd.read_csv(hob_out_file, delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
+        return df.to_json(orient='records')
+    except:
+        abort(500, 'Error converting head observation output file.')
 
 
 @app.route('/<calculation_id>/download', methods=['GET'])

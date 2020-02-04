@@ -121,7 +121,7 @@ class InowasFlopyCalculationAdapter:
             package_content = self.read_packages(self._mf_data)
             self.create_model(self.mf_package_order, package_content)
             self.write_input_model(self._model)
-            self.success, report = self.run_model(self._model, model_type='mf')
+            self._success, report = self.run_model(self._model, model_type='mf')
             self._report += report
 
             if 'hob' in self._mf_data['packages']:

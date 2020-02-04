@@ -18,7 +18,8 @@ def db_connect():
 def db_init():
     conn = db_connect()
     conn.execute(
-        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, message TEXT, created_at DATE, updated_at DATE)')
+        'CREATE TABLE IF NOT EXISTS calculations (id INTEGER PRIMARY KEY AUTOINCREMENT, calculation_id STRING, state INTEGER, message TEXT, created_at DATE, updated_at DATE)'
+    )
 
 
 def get_next_new_calculation_job():
@@ -88,6 +89,9 @@ def calculate(idx, calculation_id):
                 (state, flopy.response_message(), datetime.now(), idx))
     conn.commit()
 
+    if state == 400:
+        os.rmdir(target_directory)
+
 
 def run():
     while True:
@@ -99,6 +103,7 @@ def run():
 
         id = row['id']
         calculation_id = row['calculation_id']
+        target_directory = os.path.join(MODFLOW_FOLDER, calculation_id)
 
         try:
             calculate(id, calculation_id)
@@ -108,6 +113,7 @@ def run():
             cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                         (500, traceback.format_exc(limit=10), datetime.now(), id))
             conn.commit()
+            os.rmdir(target_directory)
 
 
 if __name__ == '__main__':

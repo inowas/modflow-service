@@ -3,3 +3,4 @@ uploads/
 modflow-data/
 db/*
 .env
+__pycache__

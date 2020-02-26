@@ -344,8 +344,8 @@ def get_results_time_series(calculation_id, type, layer, row, column):
     permitted_types = ['head', 'drawdown']
 
     layer = int(layer)
-    row = float(row)
-    col = float(column)
+    row = int(row)
+    col = int(column)
 
     if type not in permitted_types:
         abort(404,
@@ -355,11 +355,11 @@ def get_results_time_series(calculation_id, type, layer, row, column):
 
     if type == 'head':
         heads = ReadHead(target_folder)
-        return json.dumps(heads.read_ts(layer, row, column))
+        return json.dumps(heads.read_ts(layer, row, col))
 
     if type == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
-        return json.dumps(drawdown.read_ts(layer, row, column))
+        return json.dumps(drawdown.read_ts(layer, row, col))
 
 
 @app.route('/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])

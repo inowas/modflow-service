@@ -332,7 +332,7 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
         return json.dumps(drawdown.read_layer(totim, layer))
 
 
-@app.route('/<calculation_id>/timeseries/types/<type>/layers/<layer>/rows/<row>/column/<column>', methods=['GET'])
+@app.route('/<calculation_id>/timeseries/types/<type>/layers/<layer>/rows/<row>/columns/<column>', methods=['GET'])
 @cross_origin()
 def get_results_time_series(calculation_id, type, layer, row, column):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)

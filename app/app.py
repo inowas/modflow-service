@@ -332,6 +332,36 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
         return json.dumps(drawdown.read_layer(totim, layer))
 
 
+@app.route('/<calculation_id>/timeseries/types/<type>/layers/<layer>/rows/<row>/column/<column>', methods=['GET'])
+@cross_origin()
+def get_results_time_series(calculation_id, type, layer, row, column):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
+
+    permitted_types = ['head', 'drawdown']
+
+    layer = int(layer)
+    row = float(row)
+    col = float(column)
+
+    if type not in permitted_types:
+        abort(404,
+              'Type: {} not in the list of permitted types. \
+              Permitted types are: {}.'.format(type, ", ".join(permitted_types))
+              )
+
+    if type == 'head':
+        heads = ReadHead(target_folder)
+        return json.dumps(heads.read_ts(layer, row, column))
+
+    if type == 'drawdown':
+        drawdown = ReadDrawdown(target_folder)
+        return json.dumps(drawdown.read_ts(layer, row, column))
+
+
 @app.route('/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])
 @cross_origin()
 def get_results_budget(calculation_id, totim):

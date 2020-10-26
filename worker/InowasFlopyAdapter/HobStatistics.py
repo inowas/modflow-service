@@ -15,7 +15,12 @@ class HobStatistics:
 
     def write_files(self):
         with open(self._output_stat_file, 'w') as outfile:
-            json.dump(self.calculate(), outfile)
+            try:
+                result = self.calculate()
+            except:
+                result = {"error": 'Error in Hob-Calculation.'}
+            finally:
+                json.dump(result, outfile)
 
     @staticmethod
     def calculate_npf(x, n):

@@ -1,5 +1,7 @@
 .idea
 uploads/
+traefik/logs
+traefik/acme.json
 modflow-data/
 db/*
 .env

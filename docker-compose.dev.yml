@@ -7,7 +7,7 @@ services:
     volumes:
       - ./app:/app
       - ./db:/db
-      - ./modflow-data:/modflow
+      - ${MODFLOW_DATA}:/modflow
     ports:
       - "5000:5000"
 
@@ -17,5 +17,5 @@ services:
     volumes:
       - ./worker:/app
       - ./db:/db
-      - ./modflow-data:/modflow
-    command: ["python", "-u", "worker.py"]
+      - ${MODFLOW_DATA}:/modflow
+    command: [ "python", "-u", "worker.py" ]

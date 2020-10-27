@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
 from flask import abort, Flask, request, redirect, render_template, Response, send_file
 from flask_cors import CORS, cross_origin
 import pandas as pd
@@ -13,11 +15,6 @@ import jsonschema
 import uuid
 import zipfile
 import io
-
-from InowasFlopyAdapter.ReadBudget import ReadBudget
-from InowasFlopyAdapter.ReadConcentration import ReadConcentration
-from InowasFlopyAdapter.ReadDrawdown import ReadDrawdown
-from InowasFlopyAdapter.ReadHead import ReadHead
 
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
@@ -286,9 +283,9 @@ def get_file(calculation_id, file_name):
         })
 
 
-@app.route('/<calculation_id>/results/types/<type>/layers/<layer>/totims/<totim>', methods=['GET'])
+@app.route('/<calculation_id>/results/types/<t>/layers/<layer>/totims/<totim>', methods=['GET'])
 @cross_origin()
-def get_results_head_drawdown(calculation_id, type, layer, totim):
+def get_results_head_drawdown(calculation_id, t, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
@@ -300,13 +297,13 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
     totim = float(totim)
     layer = int(layer)
 
-    if type not in permitted_types:
+    if t not in permitted_types:
         abort(404,
               'Type: {} not in the list of permitted types. \
-              Permitted types are: {}.'.format(type, ", ".join(permitted_types))
+              Permitted types are: {}.'.format(t, ", ".join(permitted_types))
               )
 
-    if type == 'head':
+    if t == 'head':
         heads = ReadHead(target_folder)
         times = heads.read_times()
 
@@ -319,7 +316,7 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
 
         return json.dumps(heads.read_layer(totim, layer))
 
-    if type == 'drawdown':
+    if t == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
         times = drawdown.read_times()
         if totim not in times:
@@ -332,9 +329,9 @@ def get_results_head_drawdown(calculation_id, type, layer, totim):
         return json.dumps(drawdown.read_layer(totim, layer))
 
 
-@app.route('/<calculation_id>/timeseries/types/<type>/layers/<layer>/rows/<row>/columns/<column>', methods=['GET'])
+@app.route('/<calculation_id>/timeseries/types/<t>/layers/<layer>/rows/<row>/columns/<column>', methods=['GET'])
 @cross_origin()
-def get_results_time_series(calculation_id, type, layer, row, column):
+def get_results_time_series(calculation_id, t, layer, row, column):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
@@ -347,24 +344,24 @@ def get_results_time_series(calculation_id, type, layer, row, column):
     row = int(row)
     col = int(column)
 
-    if type not in permitted_types:
+    if t not in permitted_types:
         abort(404,
               'Type: {} not in the list of permitted types. \
-              Permitted types are: {}.'.format(type, ", ".join(permitted_types))
+              Permitted types are: {}.'.format(t, ", ".join(permitted_types))
               )
 
-    if type == 'head':
+    if t == 'head':
         heads = ReadHead(target_folder)
         return json.dumps(heads.read_ts(layer, row, col))
 
-    if type == 'drawdown':
+    if t == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
         return json.dumps(drawdown.read_ts(layer, row, col))
 
 
 @app.route('/<calculation_id>/results/types/budget/totims/<totim>', methods=['GET'])
 @cross_origin()
-def get_results_budget(calculation_id, totim):
+def get_results_budget_by_totim(calculation_id, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
@@ -379,8 +376,31 @@ def get_results_budget(calculation_id, totim):
         abort(404, 'Totim: {} not available. Available totims are: {}'.format(totim, ", ".join(map(str, times))))
 
     return json.dumps({
-        'cumulative': budget.read_cumulative_budget(totim),
-        'incremental': budget.read_incremental_budget(totim)
+        'cumulative': budget.read_budget_by_totim(totim, incremental=False),
+        'incremental': budget.read_budget_by_totim(totim, incremental=True)
+    })
+
+
+@app.route('/<calculation_id>/results/types/budget/idx/<idx>', methods=['GET'])
+@cross_origin()
+def get_results_budget_by_idx(calculation_id, idx):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
+
+    idx = int(idx)
+
+    budget = ReadBudget(target_folder)
+    times = budget.read_times()
+    if idx >= len(times):
+        abort(404,
+              'TotimKey: {} not available. Available keys are in between: {} and {}'.format(idx, 0, len(times) - 1))
+
+    return json.dumps({
+        'cumulative': budget.read_budget_by_idx(idx=idx, incremental=False),
+        'incremental': budget.read_budget_by_idx(idx=idx, incremental=True)
     })
 
 

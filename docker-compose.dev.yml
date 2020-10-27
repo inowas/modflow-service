@@ -10,9 +10,6 @@ services:
       - ${MODFLOW_DATA}:/modflow
     ports:
       - "5000:5000"
-    networks:
-      - web
-      - default
 
   worker:
     build: ./worker

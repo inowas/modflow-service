@@ -2,10 +2,8 @@ version: "3.7"
 
 services:
   app:
-    build: ./app
+    image: inowas/modflow-service:latest
     restart: always
-    expose:
-      - 5000
     labels:
       - "traefik.docker.network=web"
       - "traefik.enable=true"
@@ -16,15 +14,14 @@ services:
       - web
       - default
     volumes:
-      - ./app:/app
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
+    command: [ "python", "-u", "app.py" ]
 
   worker:
-    build: ./worker
+    image: inowas/modflow-service:latest
     restart: always
     volumes:
-      - ./worker:/app
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
     command: [ "python", "-u", "worker.py" ]

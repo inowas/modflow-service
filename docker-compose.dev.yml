@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   app:
-    build: ./app
+    image: inowas/modflow-service:latest
     restart: always
     volumes:
       - ./app:/app
@@ -12,10 +12,10 @@ services:
       - "5000:5000"
 
   worker:
-    build: ./worker
+    image: inowas/modflow-service:latest
     restart: always
     volumes:
-      - ./worker:/app
+      - ./app:/app
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
     command: [ "python", "-u", "worker.py" ]

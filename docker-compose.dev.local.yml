@@ -1,0 +1,21 @@
+version: "3.7"
+
+services:
+  app:
+    image: inowas/modflow-service:latest
+    restart: always
+    volumes:
+      - ./app:/app
+      - ./db:/db
+      - ${MODFLOW_DATA}:/modflow
+    ports:
+      - "5000:5000"
+
+  worker:
+    image: inowas/modflow-service:latest
+    restart: always
+    volumes:
+      - ./app:/app
+      - ./db:/db
+      - ${MODFLOW_DATA}:/modflow
+    command: [ "python", "-u", "worker.py" ]

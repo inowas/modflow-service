@@ -2,20 +2,30 @@ version: "3.7"
 
 services:
   app:
-    image: inowas/modflow-service:latest
+    image: inowas/modflow-service:dev
     restart: always
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.wiki.frontend.rule=Host: ${HOST_URL}"
+      - "traefik.wiki.port=5000"
+      - "traefik.wiki.protocol=http"
+    networks:
+      - web
+      - default
     volumes:
-      - ./app:/app
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
-    ports:
-      - "5000:5000"
+    command: [ "python", "-u", "app.py" ]
 
   worker:
-    image: inowas/modflow-service:latest
+    image: inowas/modflow-service:dev
     restart: always
     volumes:
-      - ./app:/app
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
     command: [ "python", "-u", "worker.py" ]
+
+networks:
+  web:
+    external: true

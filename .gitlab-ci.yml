@@ -29,7 +29,6 @@ build:dev:
 
 deploy:dev:
   stage: deploy
-  image: docker:dind
   dependencies:
     - build:dev
   environment:
@@ -38,7 +37,7 @@ deploy:dev:
   script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh -t root@dev.modflow.inowas.com 'cd /srv/docker/dev.modflow.inowas.com &&
@@ -61,7 +60,6 @@ build:production:
 
 deploy:production:
   stage: deploy
-  image: docker:dind
   dependencies:
     - build:production
   environment:
@@ -70,7 +68,7 @@ deploy:production:
   script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh -t root@modflow.inowas.com 'cd /srv/docker/modflow.inowas.com &&

@@ -1,5 +1,10 @@
 image: docker:19.03.12
 
+stages:
+  - test
+  - build
+  - deploy
+
 services:
   - docker:19.03.12-dind
 
@@ -22,12 +27,51 @@ build:dev:
   only:
     - dev
 
-build:master:
+deploy:dev:
+  stage: deploy
+  dependencies:
+    - build:dev
+  environment:
+    name: development
+    url: https://dev.modflow.inowas.com
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh -t root@dev.modflow.inowas.com 'cd /srv/docker/dev.modflow.inowas.com &&
+      docker-compose down &&
+      docker-compose build --pull &&
+      docker-compose up -d'
+
+build:production:
   stage: build
   script:
     - docker build --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE:latest
+
+  only:
+    - dev
+
+deploy:production:
+  stage: deploy
+  dependencies:
+    - build:production
+  environment:
+    name: production
+    url: https://modflow.inowas.com
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh -t root@modflow.inowas.com 'cd /srv/docker/modflow.inowas.com &&
+      docker-compose down &&
+      docker-compose build --pull &&
+      docker-compose up -d'
 
   only:
     - master

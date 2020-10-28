@@ -53,7 +53,7 @@ build:production:
     - docker push $CI_REGISTRY_IMAGE:latest
 
   only:
-    - dev
+    - master
 
 deploy:production:
   stage: deploy

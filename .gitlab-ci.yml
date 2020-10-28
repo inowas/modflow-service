@@ -45,6 +45,9 @@ deploy:dev:
       docker-compose build --pull &&
       docker-compose up -d'
 
+  only:
+    - dev
+
 build:production:
   stage: build
   script:

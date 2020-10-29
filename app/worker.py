@@ -38,22 +38,17 @@ def read_json(file):
     return data
 
 
-def log(text, logger, debug=False):
-    print(text)
-    if (debug):
-        logger.debug(text)
-        pass
-
-    logger.info(text)
-
-
 def calculate(idx, calculation_id, logger):
-    log(str(datetime.now()) + ': Calculating....' + calculation_id + "\r", logger)
+    print('Calculating: ' + calculation_id)
+    logger.debug('Calculating: ' + calculation_id)
 
     target_directory = os.path.join(MODFLOW_FOLDER, calculation_id)
-    filename = os.path.join(target_directory, 'configuration.json')
-    content = read_json(filename)
+    logger.debug('Target Directory: {0}'.format(target_directory))
 
+    filename = os.path.join(target_directory, 'configuration.json')
+    logger.debug('Filename: {0}'.format(filename))
+
+    content = read_json(filename)
     author = content.get("author")
     project = content.get("project")
     calculation_id = content.get("calculation_id")
@@ -62,15 +57,15 @@ def calculate(idx, calculation_id, logger):
     version = content.get("version")
     data = content.get("data")
 
-    log('Summary:', logger)
-    log('Author: %s' % author, logger)
-    log('Project: %s' % project, logger)
-    log('Model Id: %s' % model_id, logger)
-    log('Calculation Id: %s' % calculation_id, logger)
-    log('Type: %s' % m_type, logger)
-    log('Version: %s' % version, logger)
-    log("Running flopy calculation for model-id '{0}' with calculation-id '{1}'".format(model_id, calculation_id),
-        logger)
+    logger.debug('Summary:')
+    logger.debug('Author: %s' % author)
+    logger.debug('Project: %s' % project)
+    logger.debug('Model Id: %s' % model_id)
+    logger.debug('Calculation Id: %s' % calculation_id)
+    logger.debug('Type: %s' % m_type)
+    logger.debug('Version: %s' % version)
+    logger.debug(
+        "Running flopy calculation for model-id '{0}' with calculation-id '{1}'".format(model_id, calculation_id))
 
     if 'mf' in data:
         data['mf']['mf']['modelname'] = 'mf'
@@ -97,22 +92,20 @@ def calculate(idx, calculation_id, logger):
     try:
         flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
         state = 200 if flopy.success else 400
-        log('Flopy-state: ' + str(state), logger)
-        log('Flopy-Response: ' + str(flopy.response_message()), logger)
+        logger.debug('Flopy-state: ' + str(state))
+        logger.info('Flopy-Response: ' + str(flopy.response_message()))
 
         cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                     (state, flopy.response_message(), datetime.now(), idx))
         conn.commit()
 
-        log("SQL: 'UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (100, datetime.now(), idx)", logger)
-
         if state == 400:
             pass
     except:
-        log(traceback.format_exc(), logger)
+        logger.error(traceback.format_exc())
 
 
-def setLogger(target_directory, calculation_id):
+def set_logger(target_directory, calculation_id):
     logger = logging.getLogger('Calculation_log_' + calculation_id)
     logger.setLevel(logging.DEBUG)
 
@@ -141,7 +134,7 @@ def run():
         idx = row['id']
         calculation_id = row['calculation_id']
         target_directory = os.path.join(MODFLOW_FOLDER, calculation_id)
-        logger = setLogger(target_directory, calculation_id)
+        logger = set_logger(target_directory, calculation_id)
 
         try:
             calculate(idx, calculation_id, logger)
@@ -152,7 +145,8 @@ def run():
             cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                         (500, traceback.format_exc(), datetime.now(), idx))
             conn.commit()
-            logger.error('Flopy-state: ' + str(500))
+            logger.debug('Flopy-state: ' + str(500))
+            logger.debug(traceback.format_exc())
             logger.error(traceback.format_exc())
 
 

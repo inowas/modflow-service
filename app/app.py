@@ -241,9 +241,9 @@ def upload_file():
                     print('State-log not existing, remove folder.')
                     shutil.rmtree(target_directory, ignore_errors=True)
 
-                if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
-                    print('State-log existing, but not 200. Remove folder.')
-                    shutil.rmtree(target_directory, ignore_errors=True)
+                    if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
+                        print('State-log existing, but not 200. Remove folder.')
+                        shutil.rmtree(target_directory, ignore_errors=True)
 
             if not os.path.exists(modflow_file):
                 print('Create folder.')

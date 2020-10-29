@@ -38,9 +38,13 @@ def read_json(file):
     return data
 
 
-def log(text, logger):
+def log(text, logger, debug=False):
     print(text)
-    logger.debug(text)
+    if (debug):
+        logger.debug(text)
+        pass
+
+    logger.info(text)
 
 
 def calculate(idx, calculation_id, logger):
@@ -108,6 +112,20 @@ def calculate(idx, calculation_id, logger):
         log(traceback.format_exc(), logger)
 
 
+def setLogger(target_directory, calculation_id):
+    logger = logging.getLogger('Calculation_log_' + calculation_id)
+    logger.setLevel(logging.DEBUG)
+
+    fhd = logging.FileHandler(os.path.join(target_directory, 'debug.log'))
+    fhd.setLevel(logging.DEBUG)
+    logger.addHandler(fhd)
+
+    fhi = logging.FileHandler(os.path.join(target_directory, 'info.log'))
+    fhi.setLevel(logging.INFO)
+    logger.addHandler(fhi)
+    return logger
+
+
 def run():
     while True:
         row = get_next_new_calculation_job()
@@ -119,11 +137,7 @@ def run():
         idx = row['id']
         calculation_id = row['calculation_id']
         target_directory = os.path.join(MODFLOW_FOLDER, calculation_id)
-        logger = logging.getLogger('Calculation_log_' + calculation_id)
-        logger.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(os.path.join(target_directory, 'debug.log'))
-        fh.setLevel(logging.DEBUG)
-        logger.addHandler(fh)
+        logger = setLogger(target_directory, calculation_id)
 
         try:
             calculate(idx, calculation_id, logger)
@@ -134,8 +148,8 @@ def run():
             cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                         (500, traceback.format_exc(), datetime.now(), idx))
             conn.commit()
-            log('Flopy-state: ' + str(500), logger)
-            log(traceback.format_exc(), logger)
+            logger.error('Flopy-state: ' + str(500))
+            logger.error(traceback.format_exc())
 
 
 if __name__ == '__main__':

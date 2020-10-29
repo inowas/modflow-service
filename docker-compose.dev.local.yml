@@ -2,17 +2,21 @@ version: "2"
 
 services:
   app:
-    image: inowas/modflow-service:latest
+    image: inowas/modflow-service:dev
     restart: always
     volumes:
       - ./app:/app
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONIOENCODING=UTF-8
     ports:
       - "5000:5000"
+    command: [ "python", "-u", "app.py" ]
 
   worker:
-    image: inowas/modflow-service:latest
+    image: inowas/modflow-service:dev
     restart: always
     volumes:
       - ./app:/app

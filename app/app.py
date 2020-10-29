@@ -82,13 +82,15 @@ def get_calculation_details_json(calculation_id, data, path):
 
     mfLogfile = os.path.join(path, 'modflow.log')
     if os.path.isfile(mfLogfile):
-        print('Read message from file')
+        if app.config['DEBUG']:
+            print('Read message from file')
         message = Path(mfLogfile).read_text()
 
     state = calculation['state']
     stateLogfile = os.path.join(path, 'state.log')
     if os.path.isfile(stateLogfile):
-        print('Read state from file')
+        if app.config['DEBUG']:
+            print('Read state from file')
         state = Path(stateLogfile).read_text()
 
     heads = ReadHead(path)
@@ -198,7 +200,6 @@ def is_binary(filename):
 @cross_origin()
 def upload_file():
     if request.method == 'POST':
-
         if 'multipart/form-data' in request.content_type:
             # check if the post request has the file part
             if 'file' not in request.files:
@@ -239,22 +240,31 @@ def upload_file():
             if not is_valid(content):
                 abort(422, 'Content is not valid.')
 
+            if app.config['DEBUG']:
+                print('Content is valid')
+
             calculation_id = content.get('calculation_id')
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')
 
             if os.path.exists(modflow_file):
-                print('Path exists.')
+                if app.config['DEBUG']:
+                    print('Path exists.')
                 if not os.path.exists(os.path.join(target_directory, 'state.log')):
-                    print('State-log not existing, remove folder.')
+                    if app.config['DEBUG']:
+                        print('State-log not existing, remove folder.')
                     shutil.rmtree(target_directory, ignore_errors=True)
+                    pass
 
+                if os.path.exists(os.path.join(target_directory, 'state.log')):
                     if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
-                        print('State-log existing, but not 200. Remove folder.')
+                        if app.config['DEBUG']:
+                            print('State-log existing, but not 200. Remove folder.')
                         shutil.rmtree(target_directory, ignore_errors=True)
 
             if not os.path.exists(modflow_file):
-                print('Create folder.')
+                if app.config['DEBUG']:
+                    print('Create folder.')
                 os.makedirs(target_directory)
                 with open(modflow_file, 'w') as outfile:
                     json.dump(content, outfile)
@@ -529,6 +539,7 @@ if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
+    app.config['DEBUG'] = False
 
     db_init()
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=app.config['DEBUG'], host='0.0.0.0')

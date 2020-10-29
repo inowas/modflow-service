@@ -120,6 +120,10 @@ def setLogger(target_directory, calculation_id):
     fhd.setLevel(logging.DEBUG)
     logger.addHandler(fhd)
 
+    fhe = logging.FileHandler(os.path.join(target_directory, 'error.log'))
+    fhe.setLevel(logging.ERROR)
+    logger.addHandler(fhe)
+
     fhi = logging.FileHandler(os.path.join(target_directory, 'info.log'))
     fhi.setLevel(logging.INFO)
     logger.addHandler(fhi)

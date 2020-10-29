@@ -91,7 +91,8 @@ def calculate(idx, calculation_id):
     conn.commit()
 
     if state == 400:
-        shutil.rmtree(target_directory, ignore_errors=True)
+        pass
+
 
 def run():
     while True:
@@ -113,8 +114,8 @@ def run():
             cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                         (500, traceback.format_exc(), datetime.now(), idx))
             conn.commit()
-            shutil.rmtree(target_directory, ignore_errors=True)
             traceback.print_exc()
+
 
 if __name__ == '__main__':
     db_init()

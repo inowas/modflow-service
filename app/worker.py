@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import sqlite3 as sql
 import traceback
+import shutil
 from time import sleep
 
 from FlopyAdapter.Calculation import InowasFlopyCalculationAdapter
@@ -90,8 +91,7 @@ def calculate(idx, calculation_id):
     conn.commit()
 
     if state == 400:
-        os.rmdir(target_directory)
-
+        shutil.rmtree(target_directory, ignore_errors=True)
 
 def run():
     while True:
@@ -111,10 +111,10 @@ def run():
             conn = db_connect()
             cur = conn.cursor()
             cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
-                        (500, traceback.format_exc(limit=10), datetime.now(), idx))
+                        (500, traceback.format_exc(), datetime.now(), idx))
             conn.commit()
-            os.rmdir(target_directory)
-
+            shutil.rmtree(target_directory, ignore_errors=True)
+            traceback.print_exc()
 
 if __name__ == '__main__':
     db_init()

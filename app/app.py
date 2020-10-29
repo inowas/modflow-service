@@ -78,10 +78,18 @@ def get_number_of_calculations(state=200):
 
 def get_calculation_details_json(calculation_id, data, path):
     calculation = get_calculation_by_id(calculation_id)
+    message = calculation['message']
 
     mfLogfile = os.path.join(path, 'modflow.log')
     if os.path.isfile(mfLogfile):
-        calculation['message'] = Path(mfLogfile).read_text()
+        print('Read message from file')
+        message = Path(mfLogfile).read_text()
+
+    state = calculation['state']
+    stateLogfile = os.path.join(path, 'state.log')
+    if os.path.isfile(stateLogfile):
+        print('Read state from file')
+        state = Path(stateLogfile).read_text()
 
     heads = ReadHead(path)
     budget_times = ReadBudget(path).read_times()
@@ -116,8 +124,8 @@ def get_calculation_details_json(calculation_id, data, path):
 
     return json.dumps({
         'calculation_id': calculation_id,
-        'state': calculation['state'],
-        'message': calculation['message'],
+        'state': state,
+        'message': message,
         'files': os.listdir(target_directory),
         'times': times,
         'layer_values': layer_values

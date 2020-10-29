@@ -38,6 +38,13 @@ def read_json(file):
     return data
 
 
+def write_state(target_directory, state):
+    file = os.path.join(target_directory, 'state.log')
+    f = open(file, "w")
+    f.write(str(state))
+    f.close()
+
+
 def calculate(idx, calculation_id, logger):
     print('Calculating: ' + calculation_id)
     logger.debug('Calculating: ' + calculation_id)
@@ -93,7 +100,7 @@ def calculate(idx, calculation_id, logger):
         flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
         state = 200 if flopy.success else 400
         logger.debug('Flopy-state: ' + str(state))
-        logger.info('Flopy-Response: ' + str(flopy.response_message()))
+        logger.info(str(flopy.response_message()))
 
         cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                     (state, flopy.response_message(), datetime.now(), idx))
@@ -101,6 +108,8 @@ def calculate(idx, calculation_id, logger):
 
         if state == 400:
             pass
+
+        write_state(target_directory, state)
     except:
         logger.error(traceback.format_exc())
 
@@ -117,7 +126,7 @@ def set_logger(target_directory, calculation_id):
     fhe.setLevel(logging.ERROR)
     logger.addHandler(fhe)
 
-    fhi = logging.FileHandler(os.path.join(target_directory, 'info.log'))
+    fhi = logging.FileHandler(os.path.join(target_directory, 'modflow.log'))
     fhi.setLevel(logging.INFO)
     logger.addHandler(fhi)
     return logger
@@ -148,7 +157,7 @@ def run():
             logger.debug('Flopy-state: ' + str(500))
             logger.debug(traceback.format_exc())
             logger.error(traceback.format_exc())
-
+            write_state(target_directory, 500)
 
 if __name__ == '__main__':
     db_init()

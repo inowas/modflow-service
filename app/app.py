@@ -5,6 +5,7 @@ from flask import abort, Flask, request, redirect, render_template, Response, se
 from flask_cors import CORS, cross_origin
 import pandas as pd
 import os
+from pathlib import Path
 
 import prometheus_client
 from prometheus_flask_exporter import PrometheusMetrics
@@ -12,6 +13,7 @@ import sqlite3 as sql
 import urllib.request
 import json
 import jsonschema
+import shutil
 import uuid
 import zipfile
 import io
@@ -76,6 +78,11 @@ def get_number_of_calculations(state=200):
 
 def get_calculation_details_json(calculation_id, data, path):
     calculation = get_calculation_by_id(calculation_id)
+
+    mfLogfile = os.path.join(path, 'modflow.log')
+    if os.path.isfile(mfLogfile):
+        calculation['message'] = Path(mfLogfile).read_text()
+
     heads = ReadHead(path)
     budget_times = ReadBudget(path).read_times()
     concentration_times = ReadConcentration(path).read_times()
@@ -228,7 +235,18 @@ def upload_file():
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')
 
+            if os.path.exists(modflow_file):
+                print('Path exists.')
+                if not os.path.exists(os.path.join(target_directory, 'state.log')):
+                    print('State-log not existing, remove folder.')
+                    shutil.rmtree(target_directory, ignore_errors=True)
+
+                if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
+                    print('State-log existing, but not 200. Remove folder.')
+                    shutil.rmtree(target_directory, ignore_errors=True)
+
             if not os.path.exists(modflow_file):
+                print('Create folder.')
                 os.makedirs(target_directory)
                 with open(modflow_file, 'w') as outfile:
                     json.dump(content, outfile)

@@ -85,20 +85,22 @@ def calculate(idx, calculation_id, logger):
         data['swt']['swt']['model_ws'] = target_directory
 
     conn = db_connect()
+    conn.set_trace_callback(logger.debug)
     cur = conn.cursor()
     cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (100, datetime.now(), idx))
     conn.commit()
 
     try:
-
         flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
         state = 200 if flopy.success else 400
-        log('Flopy-state: ' + str(state))
-        log('Flopy-Response: ' + str(flopy.response_message()))
+        log('Flopy-state: ' + str(state), logger)
+        log('Flopy-Response: ' + str(flopy.response_message()), logger)
 
         cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                     (state, flopy.response_message(), datetime.now(), idx))
         conn.commit()
+
+        log("SQL: 'UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (100, datetime.now(), idx)", logger)
 
         if state == 400:
             pass
@@ -127,12 +129,13 @@ def run():
             calculate(idx, calculation_id, logger)
         except:
             conn = db_connect()
+            conn.set_trace_callback(logger.debug)
             cur = conn.cursor()
             cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                         (500, traceback.format_exc(), datetime.now(), idx))
             conn.commit()
             log('Flopy-state: ' + str(500), logger)
-            log(traceback.print_exc(), logger)
+            log(traceback.format_exc(), logger)
 
 
 if __name__ == '__main__':

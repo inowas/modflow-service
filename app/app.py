@@ -91,7 +91,7 @@ def get_calculation_details_json(calculation_id, data, path):
     if os.path.isfile(stateLogfile):
         if app.config['DEBUG']:
             print('Read state from file')
-        state = Path(stateLogfile).read_text()
+        state = int(Path(stateLogfile).read_text())
 
     heads = ReadHead(path)
     budget_times = ReadBudget(path).read_times()

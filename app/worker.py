@@ -159,6 +159,7 @@ def run():
             logger.error(traceback.format_exc())
             write_state(target_directory, 500)
 
+
 if __name__ == '__main__':
     db_init()
     run()

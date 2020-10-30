@@ -94,29 +94,52 @@ def get_calculation_details_json(calculation_id, data, path):
         state = int(Path(stateLogfile).read_text())
 
     heads = ReadHead(path)
-    budget_times = ReadBudget(path).read_times()
-    concentration_times = ReadConcentration(path).read_times()
-    drawdown_times = ReadDrawdown(path).read_times()
+    budget = ReadBudget(path)
+    concentration = ReadConcentration(path)
+    drawdown = ReadDrawdown(path)
 
     total_times = [float(totim) for totim in heads.read_times()]
 
     times = {
         'start_date_time': data['dis']['start_datetime'],
         'time_unit': data['dis']['itmuni'],
-        'total_times': total_times
+        'total_times': total_times,
+        'head': {
+            'idx': heads.read_idx(),
+            'total_times': heads.read_times(),
+            'kstpkper': heads.read_kstpkper(),
+            'layers': heads.read_number_of_layers()
+        },
+        'budget': {
+            'idx': budget.read_idx(),
+            'total_times': budget.read_times(),
+            'kstpkper': budget.read_kstpkper()
+        },
+        'concentration': {
+            'idx': concentration.read_idx(),
+            'total_times': concentration.read_times(),
+            'kstpkper': concentration.read_kstpkper(),
+            'layers': concentration.read_number_of_layers()
+        },
+        'drawdown': {
+            'idx': drawdown.read_idx(),
+            'total_times': drawdown.read_times(),
+            'kstpkper': drawdown.read_kstpkper(),
+            'layers': drawdown.read_number_of_layers()
+        },
     }
 
     layer_values = []
     number_of_layers = data['dis']['nlay']
 
     lv = ['head']
-    if len(budget_times) > 0:
+    if len(budget.read_times()) > 0:
         lv.append('budget')
 
-    if len(concentration_times) > 0:
+    if len(concentration.read_times()) > 0:
         lv.append('concentration')
 
-    if len(drawdown_times) > 0:
+    if len(drawdown.read_times()) > 0:
         lv.append('drawdown')
 
     for i in range(0, number_of_layers):
@@ -350,7 +373,7 @@ def get_results_head_drawdown(calculation_id, t, layer, totim):
         if layer >= nlay:
             abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-        return json.dumps(heads.read_layer(totim, layer))
+        return json.dumps(heads.read_layer_by_totim(totim, layer))
 
     if t == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
@@ -362,7 +385,54 @@ def get_results_head_drawdown(calculation_id, t, layer, totim):
         if layer >= nlay:
             abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-        return json.dumps(drawdown.read_layer(totim, layer))
+        return json.dumps(drawdown.read_layer_by_totim(totim, layer))
+
+
+@app.route('/<calculation_id>/results/types/<t>/layers/<layer>/idx/<idx>', methods=['GET'])
+@cross_origin()
+def get_results_head_drawdown(calculation_id, t, layer, idx):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
+
+    permitted_types = ['head', 'drawdown']
+
+    idx = int(idx)
+    layer = int(layer)
+
+    if t not in permitted_types:
+        abort(404,
+              'Type: {} not in the list of permitted types. \
+              Permitted types are: {}.'.format(t, ", ".join(permitted_types))
+              )
+
+    if t == 'head':
+        heads = ReadHead(target_folder)
+        times = heads.read_times()
+
+        if idx >= len(times):
+            abort(404,
+                  'TotimKey: {} not available. Available keys are in between: {} and {}'.format(idx, 0, len(times) - 1))
+
+        nlay = heads.read_number_of_layers()
+        if layer >= nlay:
+            abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
+
+        return json.dumps(heads.read_layer_by_idx(idx, layer))
+
+    if t == 'drawdown':
+        drawdown = ReadDrawdown(target_folder)
+        times = drawdown.read_times()
+        if idx >= len(times):
+            abort(404,
+                  'TotimKey: {} not available. Available keys are in between: {} and {}'.format(idx, 0, len(times) - 1))
+        nlay = drawdown.read_number_of_layers()
+        if layer >= nlay:
+            abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
+
+        return json.dumps(drawdown.read_layer_by_idx(idx, layer))
 
 
 @app.route('/<calculation_id>/timeseries/types/<t>/layers/<layer>/rows/<row>/columns/<column>', methods=['GET'])

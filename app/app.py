@@ -105,27 +105,27 @@ def get_calculation_details_json(calculation_id, data, path):
         'time_unit': data['dis']['itmuni'],
         'total_times': total_times,
         'head': {
-            'idx': heads.read_idx(),
-            'total_times': heads.read_times(),
-            'kstpkper': heads.read_kstpkper(),
-            'layers': heads.read_number_of_layers()
+            'idx': [int(idx) for idx in heads.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in heads.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in heads.read_kstpkper()],
+            'layers': int(heads.read_number_of_layers())
         },
         'budget': {
-            'idx': budget.read_idx(),
-            'total_times': budget.read_times(),
-            'kstpkper': budget.read_kstpkper()
+            'idx': [int(idx) for idx in budget.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in budget.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in budget.read_kstpkper()],
         },
         'concentration': {
-            'idx': concentration.read_idx(),
-            'total_times': concentration.read_times(),
-            'kstpkper': concentration.read_kstpkper(),
-            'layers': concentration.read_number_of_layers()
+            'idx': [int(idx) for idx in concentration.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in concentration.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in concentration.read_kstpkper()],
+            'layers': int(concentration.read_number_of_layers())
         },
         'drawdown': {
-            'idx': drawdown.read_idx(),
-            'total_times': drawdown.read_times(),
-            'kstpkper': drawdown.read_kstpkper(),
-            'layers': drawdown.read_number_of_layers()
+            'idx': [int(idx) for idx in drawdown.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in drawdown.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in drawdown.read_kstpkper()],
+            'layers': int(drawdown.read_number_of_layers())
         },
     }
 
@@ -609,7 +609,7 @@ if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
-    app.config['DEBUG'] = False
+    app.config['DEBUG'] = True
 
     db_init()
     app.run(debug=app.config['DEBUG'], host='0.0.0.0')

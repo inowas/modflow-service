@@ -344,7 +344,7 @@ def get_file(calculation_id, file_name):
 
 @app.route('/<calculation_id>/results/types/<t>/layers/<layer>/totims/<totim>', methods=['GET'])
 @cross_origin()
-def get_results_head_drawdown(calculation_id, t, layer, totim):
+def get_results_head_drawdown_by_totim(calculation_id, t, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
@@ -390,7 +390,7 @@ def get_results_head_drawdown(calculation_id, t, layer, totim):
 
 @app.route('/<calculation_id>/results/types/<t>/layers/<layer>/idx/<idx>', methods=['GET'])
 @cross_origin()
-def get_results_head_drawdown(calculation_id, t, layer, idx):
+def get_results_head_drawdown_by_idx(calculation_id, t, layer, idx):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 

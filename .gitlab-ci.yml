@@ -44,7 +44,8 @@ deploy:dev:
       docker-compose -f docker-compose.dev.yml down &&
       docker-compose -f docker-compose.dev.yml pull &&
       docker-compose -f docker-compose.dev.yml up -d &&
-      docker-compose -f docker-compose.dev.yml ps'
+      docker-compose -f docker-compose.dev.yml ps &&
+      docker system prune -f'
 
   only:
     - dev
@@ -76,7 +77,8 @@ deploy:production:
       docker-compose down &&
       docker-compose pull &&
       docker-compose up -d &&
-      docker-compose ps'
+      docker-compose ps &&
+      docker system prune -f'
 
   only:
     - master

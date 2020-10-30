@@ -5,6 +5,7 @@ from flask import abort, Flask, request, redirect, render_template, Response, se
 from flask_cors import CORS, cross_origin
 import pandas as pd
 import os
+from pathlib import Path
 
 import prometheus_client
 from prometheus_flask_exporter import PrometheusMetrics
@@ -12,6 +13,7 @@ import sqlite3 as sql
 import urllib.request
 import json
 import jsonschema
+import shutil
 import uuid
 import zipfile
 import io
@@ -76,30 +78,68 @@ def get_number_of_calculations(state=200):
 
 def get_calculation_details_json(calculation_id, data, path):
     calculation = get_calculation_by_id(calculation_id)
+    message = calculation['message']
+
+    mfLogfile = os.path.join(path, 'modflow.log')
+    if os.path.isfile(mfLogfile):
+        if app.config['DEBUG']:
+            print('Read message from file')
+        message = Path(mfLogfile).read_text()
+
+    state = calculation['state']
+    stateLogfile = os.path.join(path, 'state.log')
+    if os.path.isfile(stateLogfile):
+        if app.config['DEBUG']:
+            print('Read state from file')
+        state = int(Path(stateLogfile).read_text())
+
     heads = ReadHead(path)
-    budget_times = ReadBudget(path).read_times()
-    concentration_times = ReadConcentration(path).read_times()
-    drawdown_times = ReadDrawdown(path).read_times()
+    budget = ReadBudget(path)
+    concentration = ReadConcentration(path)
+    drawdown = ReadDrawdown(path)
 
     total_times = [float(totim) for totim in heads.read_times()]
 
     times = {
         'start_date_time': data['dis']['start_datetime'],
         'time_unit': data['dis']['itmuni'],
-        'total_times': total_times
+        'total_times': total_times,
+        'head': {
+            'idx': [int(idx) for idx in heads.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in heads.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in heads.read_kstpkper()],
+            'layers': int(heads.read_number_of_layers())
+        },
+        'budget': {
+            'idx': [int(idx) for idx in budget.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in budget.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in budget.read_kstpkper()],
+        },
+        'concentration': {
+            'idx': [int(idx) for idx in concentration.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in concentration.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in concentration.read_kstpkper()],
+            'layers': int(concentration.read_number_of_layers())
+        },
+        'drawdown': {
+            'idx': [int(idx) for idx in drawdown.read_idx()],
+            'total_times': [float(round(totim, 0)) for totim in drawdown.read_times()],
+            'kstpkper': [[int(kstpker[0]), int(kstpker[1])] for kstpker in drawdown.read_kstpkper()],
+            'layers': int(drawdown.read_number_of_layers())
+        },
     }
 
     layer_values = []
     number_of_layers = data['dis']['nlay']
 
     lv = ['head']
-    if len(budget_times) > 0:
+    if len(budget.read_times()) > 0:
         lv.append('budget')
 
-    if len(concentration_times) > 0:
+    if len(concentration.read_times()) > 0:
         lv.append('concentration')
 
-    if len(drawdown_times) > 0:
+    if len(drawdown.read_times()) > 0:
         lv.append('drawdown')
 
     for i in range(0, number_of_layers):
@@ -109,8 +149,8 @@ def get_calculation_details_json(calculation_id, data, path):
 
     return json.dumps({
         'calculation_id': calculation_id,
-        'state': calculation['state'],
-        'message': calculation['message'],
+        'state': state,
+        'message': message,
         'files': os.listdir(target_directory),
         'times': times,
         'layer_values': layer_values
@@ -183,7 +223,6 @@ def is_binary(filename):
 @cross_origin()
 def upload_file():
     if request.method == 'POST':
-
         if 'multipart/form-data' in request.content_type:
             # check if the post request has the file part
             if 'file' not in request.files:
@@ -224,11 +263,31 @@ def upload_file():
             if not is_valid(content):
                 abort(422, 'Content is not valid.')
 
+            if app.config['DEBUG']:
+                print('Content is valid')
+
             calculation_id = content.get('calculation_id')
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')
 
+            if os.path.exists(modflow_file):
+                if app.config['DEBUG']:
+                    print('Path exists.')
+                if not os.path.exists(os.path.join(target_directory, 'state.log')):
+                    if app.config['DEBUG']:
+                        print('State-log not existing, remove folder.')
+                    shutil.rmtree(target_directory, ignore_errors=True)
+                    pass
+
+                if os.path.exists(os.path.join(target_directory, 'state.log')):
+                    if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
+                        if app.config['DEBUG']:
+                            print('State-log existing, but not 200. Remove folder.')
+                        shutil.rmtree(target_directory, ignore_errors=True)
+
             if not os.path.exists(modflow_file):
+                if app.config['DEBUG']:
+                    print('Create folder.')
                 os.makedirs(target_directory)
                 with open(modflow_file, 'w') as outfile:
                     json.dump(content, outfile)
@@ -285,7 +344,7 @@ def get_file(calculation_id, file_name):
 
 @app.route('/<calculation_id>/results/types/<t>/layers/<layer>/totims/<totim>', methods=['GET'])
 @cross_origin()
-def get_results_head_drawdown(calculation_id, t, layer, totim):
+def get_results_head_drawdown_by_totim(calculation_id, t, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
@@ -314,7 +373,7 @@ def get_results_head_drawdown(calculation_id, t, layer, totim):
         if layer >= nlay:
             abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-        return json.dumps(heads.read_layer(totim, layer))
+        return json.dumps(heads.read_layer_by_totim(totim, layer))
 
     if t == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
@@ -326,7 +385,54 @@ def get_results_head_drawdown(calculation_id, t, layer, totim):
         if layer >= nlay:
             abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-        return json.dumps(drawdown.read_layer(totim, layer))
+        return json.dumps(drawdown.read_layer_by_totim(totim, layer))
+
+
+@app.route('/<calculation_id>/results/types/<t>/layers/<layer>/idx/<idx>', methods=['GET'])
+@cross_origin()
+def get_results_head_drawdown_by_idx(calculation_id, t, layer, idx):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
+
+    permitted_types = ['head', 'drawdown']
+
+    idx = int(idx)
+    layer = int(layer)
+
+    if t not in permitted_types:
+        abort(404,
+              'Type: {} not in the list of permitted types. \
+              Permitted types are: {}.'.format(t, ", ".join(permitted_types))
+              )
+
+    if t == 'head':
+        heads = ReadHead(target_folder)
+        times = heads.read_times()
+
+        if idx >= len(times):
+            abort(404,
+                  'TotimKey: {} not available. Available keys are in between: {} and {}'.format(idx, 0, len(times) - 1))
+
+        nlay = heads.read_number_of_layers()
+        if layer >= nlay:
+            abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
+
+        return json.dumps(heads.read_layer_by_idx(idx, layer))
+
+    if t == 'drawdown':
+        drawdown = ReadDrawdown(target_folder)
+        times = drawdown.read_times()
+        if idx >= len(times):
+            abort(404,
+                  'TotimKey: {} not available. Available keys are in between: {} and {}'.format(idx, 0, len(times) - 1))
+        nlay = drawdown.read_number_of_layers()
+        if layer >= nlay:
+            abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
+
+        return json.dumps(drawdown.read_layer_by_idx(idx, layer))
 
 
 @app.route('/<calculation_id>/timeseries/types/<t>/layers/<layer>/rows/<row>/columns/<column>', methods=['GET'])
@@ -503,6 +609,7 @@ if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
+    app.config['DEBUG'] = True
 
     db_init()
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=app.config['DEBUG'], host='0.0.0.0')

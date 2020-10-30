@@ -42,8 +42,9 @@ deploy:dev:
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh -t root@dev.modflow.inowas.com 'cd /srv/docker/dev.modflow.inowas.com &&
       docker-compose -f docker-compose.dev.yml down &&
-      docker-compose -f docker-compose.dev.yml build --pull &&
-      docker-compose -f docker-compose.dev.yml up -d'
+      docker-compose -f docker-compose.dev.yml pull &&
+      docker-compose -f docker-compose.dev.yml up -d &&
+      docker-compose -f docker-compose.dev.yml ps'
 
   only:
     - dev
@@ -73,8 +74,9 @@ deploy:production:
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh -t root@modflow.inowas.com 'cd /srv/docker/modflow.inowas.com &&
       docker-compose down &&
-      docker-compose build --pull &&
-      docker-compose up -d'
+      docker-compose pull &&
+      docker-compose up -d &&
+      docker-compose ps'
 
   only:
     - master

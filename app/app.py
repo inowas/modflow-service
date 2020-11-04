@@ -269,6 +269,9 @@ def upload_file():
             except (jsonschema.exceptions.ValidationError, AttributeError) as e:
                 abort(make_response(jsonify(message=str(e)), 422))
 
+            if app.config['DEBUG']:
+                print('Content is valid')
+
             calculation_id = content.get('calculation_id')
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')

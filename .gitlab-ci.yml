@@ -79,6 +79,6 @@ deploy:production:
       docker-compose up -d &&
       docker-compose ps &&
       docker system prune -f'
-
+      
   only:
     - master

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
-from flask import abort, Flask, request, redirect, render_template, Response, send_file
+from flask import abort, Flask, request, redirect, render_template, Response, send_file, make_response, jsonify
 from flask_cors import CORS, cross_origin
 import pandas as pd
 import os
@@ -172,28 +172,28 @@ def read_json(file):
     return data
 
 
-def is_valid(content):
+def assert_is_valid(content):
     try:
         data = content.get('data')
         mf = data.get('mf')
         mt = data.get('mt')
-    except AttributeError:
-        return False
+    except AttributeError as e:
+        raise e
 
     try:
         mf_schema_data = urllib.request.urlopen('{}/modflow/packages/mfPackages.json'.format(SCHEMA_SERVER_URL))
         mf_schema = json.loads(mf_schema_data.read())
         jsonschema.validate(instance=mf, schema=mf_schema)
-    except jsonschema.exceptions.ValidationError:
-        return False
+    except jsonschema.exceptions.ValidationError as e:
+        raise e
 
     if mt:
         try:
             mt_schema_data = urllib.request.urlopen('{}/modflow/packages/mtPackages.json'.format(SCHEMA_SERVER_URL))
             mt_schema = json.loads(mt_schema_data.read())
             jsonschema.validate(instance=mt, schema=mt_schema)
-        except jsonschema.exceptions.ValidationError:
-            return False
+        except jsonschema.exceptions.ValidationError as e:
+            raise e
 
     return True
 
@@ -238,9 +238,13 @@ def upload_file():
 
             content = read_json(temp_file)
 
-            if not is_valid(content):
-                os.remove(temp_file)
-                abort(422, 'This JSON file does not match with the MODFLOW JSON Schema')
+            try:
+                assert_is_valid(content)
+            except (jsonschema.exceptions.ValidationError, AttributeError) as e:
+                abort(make_response(
+                    render_template('schema_validation_error.html', e=e),
+                    422
+                ))
 
             calculation_id = content.get("calculation_id")
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -260,11 +264,10 @@ def upload_file():
         if 'application/json' in request.content_type:
             content = request.get_json(force=True)
 
-            if not is_valid(content):
-                abort(422, 'Content is not valid.')
-
-            if app.config['DEBUG']:
-                print('Content is valid')
+            try:
+                assert_is_valid(content)
+            except (jsonschema.exceptions.ValidationError, AttributeError) as e:
+                abort(make_response(jsonify(message=str(e)), 422))
 
             calculation_id = content.get('calculation_id')
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)

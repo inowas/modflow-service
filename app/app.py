@@ -545,7 +545,7 @@ def get_results_concentration(calculation_id, substance, layer, totim):
     if layer >= nlay:
         abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-    return json.dumps(concentrations.read_layer(substance, totim, layer))
+    return json.dumps(concentrations.read_layer(substance=substance, totim=totim, layer=totim))
 
 
 @app.route('/<calculation_id>/results/types/observations', methods=['GET'])

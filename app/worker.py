@@ -45,6 +45,13 @@ def write_state(target_directory, state):
     f.close()
 
 
+def model_check(target_directory, flopy):
+    file = os.path.join(target_directory, 'check.log')
+    f = open(file, "w")
+    flopy.check_model(f)
+    f.close()
+
+
 def calculate(idx, calculation_id, logger):
     print('Calculating: ' + calculation_id)
     logger.debug('Calculating: ' + calculation_id)
@@ -98,6 +105,8 @@ def calculate(idx, calculation_id, logger):
 
     try:
         flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
+        model_check(target_directory, flopy)
+
         state = 200 if flopy.success else 400
         logger.debug('Flopy-state: ' + str(state))
         logger.info(str(flopy.response_message()))
@@ -111,6 +120,7 @@ def calculate(idx, calculation_id, logger):
 
         write_state(target_directory, state)
     except:
+        write_state(target_directory, 500)
         logger.error(traceback.format_exc())
 
 

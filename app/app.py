@@ -250,8 +250,9 @@ def upload_file():
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')
 
-            if os.path.exists(modflow_file):
-                abort(422, 'Model with calculationId: {} already exits.'.format(calculation_id))
+            if os.path.exists(target_directory):
+                # abort(422, 'Model with calculationId: {} already exits.'.format(calculation_id))
+                shutil.rmtree(target_directory)
 
             os.makedirs(target_directory)
             with open(modflow_file, 'w') as outfile:

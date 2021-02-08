@@ -118,12 +118,12 @@ def calculate(idx, calculation_id, logger):
         logger.error(traceback.format_exc())
         pass
     finally:
-        if state == 200:
-            try:
-                flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
-                model_check(target_directory, flopy)
-            except:
-                pass
+        try:
+            flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
+            model_check(target_directory, flopy)
+        except:
+            pass
+
 
 def set_logger(target_directory, calculation_id):
     logger = logging.getLogger('Calculation_log_' + calculation_id)

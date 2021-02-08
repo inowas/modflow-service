@@ -113,12 +113,17 @@ def calculate(idx, calculation_id, logger):
                     (state, flopy.response_message(), datetime.now(), idx))
         conn.commit()
         write_state(target_directory, state)
-
-        model_check(target_directory, flopy)
     except:
         write_state(target_directory, 500)
         logger.error(traceback.format_exc())
-
+        pass
+    finally:
+        if state == 200:
+            try:
+                flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
+                model_check(target_directory, flopy)
+            except:
+                pass
 
 def set_logger(target_directory, calculation_id):
     logger = logging.getLogger('Calculation_log_' + calculation_id)

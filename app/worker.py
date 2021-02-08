@@ -105,8 +105,6 @@ def calculate(idx, calculation_id, logger):
 
     try:
         flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
-        model_check(target_directory, flopy)
-
         state = 200 if flopy.success else 400
         logger.debug('Flopy-state: ' + str(state))
         logger.info(str(flopy.response_message()))
@@ -114,11 +112,9 @@ def calculate(idx, calculation_id, logger):
         cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                     (state, flopy.response_message(), datetime.now(), idx))
         conn.commit()
-
-        if state == 400:
-            pass
-
         write_state(target_directory, state)
+
+        model_check(target_directory, flopy)
     except:
         write_state(target_directory, 500)
         logger.error(traceback.format_exc())

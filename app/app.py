@@ -279,9 +279,20 @@ def upload_file():
 
             if os.path.exists(modflow_file):
                 if app.config['DEBUG']:
-                    print('Path exists, remove folder.')
-                shutil.rmtree(target_directory, ignore_errors=True)
-                pass
+                    print('Path exists.')
+                    shutil.rmtree(target_directory, ignore_errors=True)
+
+            # if not os.path.exists(os.path.join(target_directory, 'state.log')):
+            #     if app.config['DEBUG']:
+            #         print('State-log not existing, remove folder.')
+            #     shutil.rmtree(target_directory, ignore_errors=True)
+            #     pass
+            #
+            #     if os.path.exists(os.path.join(target_directory, 'state.log')):
+            #         if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
+            #             if app.config['DEBUG']:
+            #                 print('State-log existing, but not 200. Remove folder.')
+            #             shutil.rmtree(target_directory, ignore_errors=True)
 
             if not os.path.exists(modflow_file):
                 if app.config['DEBUG']:

@@ -129,15 +129,18 @@ def set_logger(target_directory, calculation_id):
     logger = logging.getLogger('Calculation_log_' + calculation_id)
     logger.setLevel(logging.DEBUG)
 
-    fhd = logging.FileHandler(os.path.join(target_directory, 'debug.log'))
+    debug_log_file = os.path.join(target_directory, 'debug.log')
+    fhd = logging.FileHandler(debug_log_file, 'a+')
     fhd.setLevel(logging.DEBUG)
     logger.addHandler(fhd)
 
-    fhe = logging.FileHandler(os.path.join(target_directory, 'error.log'))
+    error_log_file = os.path.join(target_directory, 'error.log')
+    fhe = logging.FileHandler(error_log_file, 'a+')
     fhe.setLevel(logging.ERROR)
     logger.addHandler(fhe)
 
-    fhi = logging.FileHandler(os.path.join(target_directory, 'modflow.log'))
+    modflow_log_file = os.path.join(target_directory, 'modflow.log')
+    fhi = logging.FileHandler(modflow_log_file, 'a+')
     fhi.setLevel(logging.INFO)
     logger.addHandler(fhi)
     return logger
@@ -169,6 +172,10 @@ def run():
             logger.debug(traceback.format_exc())
             logger.error(traceback.format_exc())
             write_state(target_directory, 500)
+        finally:
+            root = logging.getLogger()
+            list(map(root.removeHandler, root.handlers))
+            list(map(root.removeFilter, root.filters))
 
 
 if __name__ == '__main__':

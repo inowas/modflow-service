@@ -316,9 +316,14 @@ def upload_file():
 @app.route('/<calculation_id>', methods=['GET'])
 @cross_origin()
 def calculation_details(calculation_id):
-    modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
+    path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(path, 'configuration.json')
     if not os.path.exists(modflow_file):
         abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
+
+    list_file = os.path.join(path, 'mf.list')
+    if not os.path.exists(list_file):
+        insert_new_calculation(calculation_id)
 
     data = read_json(modflow_file).get('data').get('mf')
     path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)

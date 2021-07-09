@@ -60,7 +60,8 @@ def get_calculation_by_id(calculation_id):
     cursor = conn.cursor()
 
     cursor.execute(
-        'SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ?', (calculation_id,)
+        'SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ? ORDER BY id DESC LIMIT 1',
+        (calculation_id,)
     )
     return cursor.fetchone()
 

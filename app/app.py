@@ -17,6 +17,7 @@ import shutil
 import uuid
 import zipfile
 import io
+import glob
 
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
@@ -605,6 +606,36 @@ def get_download_model(calculation_id):
         as_attachment=True,
         attachment_filename='model-calculation-{}.zip'.format(calculation_id)
     )
+
+
+@app.route('/cleanup/<calculation_id>', methods=['GET'])
+@cross_origin()
+def cleanup_calculation(calculation_id):
+    path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    os.chdir(path)
+
+    deleted_list = []
+    for file in glob.glob("mf.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("mt.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("mt*.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("MT*.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("state.log"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    return json.dumps(deleted_list)
 
 
 # noinspection SqlResolve

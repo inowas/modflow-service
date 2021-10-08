@@ -3,7 +3,7 @@ Click>=7.1.2
 Flask>=1.1.2
 Flask-Cors>=3.0.9
 itsdangerous>=1.1.0
-InowasFlopyAdapter>=1.2.1
+InowasFlopyAdapter>=1.5
 Jinja2>=2.11.2
 jsonschema>=3.2.0
 MarkupSafe>=1.1.1
@@ -21,5 +21,3 @@ virtualenv>=20.1.0
 virtualenv-clone>=0.5.4
 virtualenvwrapper>=4.8.4
 Werkzeug>=1.0.1
-
-

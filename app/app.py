@@ -17,6 +17,7 @@ import shutil
 import uuid
 import zipfile
 import io
+import glob
 
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
@@ -60,7 +61,8 @@ def get_calculation_by_id(calculation_id):
     cursor = conn.cursor()
 
     cursor.execute(
-        'SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ?', (calculation_id,)
+        'SELECT calculation_id, state, message FROM calculations WHERE calculation_id = ? ORDER BY id DESC LIMIT 1',
+        (calculation_id,)
     )
     return cursor.fetchone()
 
@@ -78,7 +80,10 @@ def get_number_of_calculations(state=200):
 
 def get_calculation_details_json(calculation_id, data, path):
     calculation = get_calculation_by_id(calculation_id)
-    message = calculation['message']
+    try:
+        message = calculation["message"]
+    except TypeError:
+        message = ""
 
     mfLogfile = os.path.join(path, 'modflow.log')
     if os.path.isfile(mfLogfile):
@@ -86,7 +91,11 @@ def get_calculation_details_json(calculation_id, data, path):
             print('Read message from file')
         message = Path(mfLogfile).read_text()
 
-    state = calculation['state']
+    try:
+        state = calculation['state']
+    except TypeError:
+        state = 404
+
     stateLogfile = os.path.join(path, 'state.log')
     if os.path.isfile(stateLogfile):
         if app.config['DEBUG']:
@@ -202,8 +211,15 @@ def assert_is_valid(content):
 def insert_new_calculation(calculation_id):
     with db_connect() as con:
         cur = con.cursor()
-        cur.execute('INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)',
-                    (calculation_id, 0, datetime.now(), datetime.now()))
+        cur.execute('SELECT * FROM calculations WHERE calculation_id = ? AND state < ?', (calculation_id, 200))
+        result = cur.fetchall()
+        if len(result) > 0:
+            return
+
+        cur.execute(
+            'INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)',
+            (calculation_id, 0, datetime.now(), datetime.now())
+        )
 
 
 def is_binary(filename):
@@ -250,8 +266,9 @@ def upload_file():
             target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
             modflow_file = os.path.join(target_directory, 'configuration.json')
 
-            if os.path.exists(modflow_file):
-                abort(422, 'Model with calculationId: {} already exits.'.format(calculation_id))
+            if os.path.exists(target_directory):
+                # abort(422, 'Model with calculationId: {} already exits.'.format(calculation_id))
+                shutil.rmtree(target_directory)
 
             os.makedirs(target_directory)
             with open(modflow_file, 'w') as outfile:
@@ -279,17 +296,19 @@ def upload_file():
             if os.path.exists(modflow_file):
                 if app.config['DEBUG']:
                     print('Path exists.')
-                if not os.path.exists(os.path.join(target_directory, 'state.log')):
-                    if app.config['DEBUG']:
-                        print('State-log not existing, remove folder.')
                     shutil.rmtree(target_directory, ignore_errors=True)
-                    pass
 
-                if os.path.exists(os.path.join(target_directory, 'state.log')):
-                    if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
-                        if app.config['DEBUG']:
-                            print('State-log existing, but not 200. Remove folder.')
-                        shutil.rmtree(target_directory, ignore_errors=True)
+            # if not os.path.exists(os.path.join(target_directory, 'state.log')):
+            #     if app.config['DEBUG']:
+            #         print('State-log not existing, remove folder.')
+            #     shutil.rmtree(target_directory, ignore_errors=True)
+            #     pass
+            #
+            #     if os.path.exists(os.path.join(target_directory, 'state.log')):
+            #         if Path(os.path.join(target_directory, 'state.log')).read_text() != '200':
+            #             if app.config['DEBUG']:
+            #                 print('State-log existing, but not 200. Remove folder.')
+            #             shutil.rmtree(target_directory, ignore_errors=True)
 
             if not os.path.exists(modflow_file):
                 if app.config['DEBUG']:
@@ -313,9 +332,14 @@ def upload_file():
 @app.route('/<calculation_id>', methods=['GET'])
 @cross_origin()
 def calculation_details(calculation_id):
-    modflow_file = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id, 'configuration.json')
+    path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(path, 'configuration.json')
     if not os.path.exists(modflow_file):
         abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
+
+    list_file = os.path.join(path, 'mf.list')
+    if not os.path.exists(list_file):
+        insert_new_calculation(calculation_id)
 
     data = read_json(modflow_file).get('data').get('mf')
     path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
@@ -582,6 +606,36 @@ def get_download_model(calculation_id):
         as_attachment=True,
         attachment_filename='model-calculation-{}.zip'.format(calculation_id)
     )
+
+
+@app.route('/cleanup/<calculation_id>', methods=['GET'])
+@cross_origin()
+def cleanup_calculation(calculation_id):
+    path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    os.chdir(path)
+
+    deleted_list = []
+    for file in glob.glob("mf.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("mt.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("mt*.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("MT*.*"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    for file in glob.glob("state.log"):
+        deleted_list.append(file)
+        os.remove(file)
+
+    return json.dumps(deleted_list)
 
 
 # noinspection SqlResolve

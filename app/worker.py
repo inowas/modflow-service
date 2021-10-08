@@ -45,6 +45,13 @@ def write_state(target_directory, state):
     f.close()
 
 
+def model_check(target_directory, flopy):
+    file = os.path.join(target_directory, 'check.log')
+    f = open(file, "w")
+    flopy.check_model(f)
+    f.close()
+
+
 def calculate(idx, calculation_id, logger):
     print('Calculating: ' + calculation_id)
     logger.debug('Calculating: ' + calculation_id)
@@ -105,28 +112,35 @@ def calculate(idx, calculation_id, logger):
         cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
                     (state, flopy.response_message(), datetime.now(), idx))
         conn.commit()
-
-        if state == 400:
-            pass
-
         write_state(target_directory, state)
     except:
+        write_state(target_directory, 500)
         logger.error(traceback.format_exc())
+        pass
+    finally:
+        try:
+            flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
+            model_check(target_directory, flopy)
+        except:
+            pass
 
 
 def set_logger(target_directory, calculation_id):
     logger = logging.getLogger('Calculation_log_' + calculation_id)
     logger.setLevel(logging.DEBUG)
 
-    fhd = logging.FileHandler(os.path.join(target_directory, 'debug.log'))
+    debug_log_file = os.path.join(target_directory, 'debug.log')
+    fhd = logging.FileHandler(debug_log_file, 'a+')
     fhd.setLevel(logging.DEBUG)
     logger.addHandler(fhd)
 
-    fhe = logging.FileHandler(os.path.join(target_directory, 'error.log'))
+    error_log_file = os.path.join(target_directory, 'error.log')
+    fhe = logging.FileHandler(error_log_file, 'a+')
     fhe.setLevel(logging.ERROR)
     logger.addHandler(fhe)
 
-    fhi = logging.FileHandler(os.path.join(target_directory, 'modflow.log'))
+    modflow_log_file = os.path.join(target_directory, 'modflow.log')
+    fhi = logging.FileHandler(modflow_log_file, 'a+')
     fhi.setLevel(logging.INFO)
     logger.addHandler(fhi)
     return logger
@@ -158,6 +172,10 @@ def run():
             logger.debug(traceback.format_exc())
             logger.error(traceback.format_exc())
             write_state(target_directory, 500)
+        finally:
+            root = logging.getLogger()
+            list(map(root.removeHandler, root.handlers))
+            list(map(root.removeFilter, root.filters))
 
 
 if __name__ == '__main__':

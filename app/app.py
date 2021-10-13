@@ -544,7 +544,7 @@ def get_results_budget_by_idx(calculation_id, idx):
     '/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/totims/<totim>',
     methods=['GET'])
 @cross_origin()
-def get_results_concentration(calculation_id, substance, layer, totim):
+def get_layer_results_concentration_by_totim(calculation_id, substance, layer, totim):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
@@ -569,7 +569,38 @@ def get_results_concentration(calculation_id, substance, layer, totim):
     if layer >= nlay:
         abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-    return json.dumps(concentrations.read_layer(substance=substance, totim=totim, layer=totim))
+    return json.dumps(concentrations.read_layer(substance=substance, totim=totim, layer=layer))
+
+
+@app.route(
+    '/<calculation_id>/results/types/concentration/substance/<substance>/layers/<layer>/idx/<idx>',
+    methods=['GET'])
+@cross_origin()
+def get_layer_results_concentration_by_idx(calculation_id, substance, layer, idx):
+    target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    modflow_file = os.path.join(target_folder, 'configuration.json')
+
+    if not os.path.exists(modflow_file):
+        abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
+
+    concentrations = ReadConcentration(target_folder)
+    layer = int(layer)
+    substance = int(substance)
+
+    nsub = concentrations.read_number_of_substances()
+    if substance >= nsub:
+        abort(404, 'Substance: {} not available. Number of substances: {}.'.format(substance, nsub))
+
+    times = concentrations.read_times
+
+    if idx >= len(times):
+        abort(404, 'idxKey: {} not available. Available keys are in between: {} and {}'.format(idx, 0, len(times) - 1))
+
+    nlay = concentrations.read_number_of_layers()
+    if layer >= nlay:
+        abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
+
+    return json.dumps(concentrations.read_layer(substance=substance, idx=idx, layer=layer))
 
 
 @app.route('/<calculation_id>/results/types/observations', methods=['GET'])

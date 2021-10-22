@@ -601,7 +601,7 @@ def get_layer_results_concentration_by_idx(calculation_id, substance, layer, idx
     if layer >= nlay:
         abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-    return json.dumps(concentrations.read_layer(substance=substance, idx=idx, layer=layer))
+    return json.dumps(concentrations.read_layer_by_idx(substance=substance, idx=idx, layer=layer))
 
 
 @app.route('/<calculation_id>/results/types/observations', methods=['GET'])

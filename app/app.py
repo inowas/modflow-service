@@ -586,6 +586,7 @@ def get_layer_results_concentration_by_idx(calculation_id, substance, layer, idx
     concentrations = ReadConcentration(target_folder)
     layer = int(layer)
     substance = int(substance)
+    idx = int(idx)
 
     nsub = concentrations.read_number_of_substances()
     if substance >= nsub:

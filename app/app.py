@@ -591,7 +591,7 @@ def get_layer_results_concentration_by_idx(calculation_id, substance, layer, idx
     if substance >= nsub:
         abort(404, 'Substance: {} not available. Number of substances: {}.'.format(substance, nsub))
 
-    times = concentrations.read_times
+    times = concentrations.read_times()
 
     if idx >= len(times):
         abort(404, 'idxKey: {} not available. Available keys are in between: {} and {}'.format(idx, 0, len(times) - 1))

@@ -1,4 +1,4 @@
-image: docker:20.10.16
+image: docker:19.03.12
 
 stages:
   - test
@@ -6,12 +6,12 @@ stages:
   - deploy
 
 services:
-  - docker:20.10.16-dind
+  - docker:19.03.12-dind
 
 variables:
   # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
 
 before_script:
   - docker info

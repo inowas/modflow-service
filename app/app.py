@@ -168,7 +168,7 @@ def get_calculation_details_json(calculation_id, data, path):
         'layer_values': layer_values
     }
 
-    json.dump(details, open(calculation_details_file, 'w'))
+    json.dump(details, open(calculation_details_file, 'x'))
     return json.dumps(details)
 
 

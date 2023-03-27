@@ -79,6 +79,11 @@ def get_number_of_calculations(state=200):
 
 
 def get_calculation_details_json(calculation_id, data, path):
+    target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    calculation_details_file = os.path.join(target_directory, 'calculation_details.json')
+    if os.path.exists(calculation_details_file):
+        return send_file(calculation_details_file, mimetype='application/json')
+
     calculation = get_calculation_by_id(calculation_id)
     try:
         message = calculation["message"]
@@ -154,16 +159,17 @@ def get_calculation_details_json(calculation_id, data, path):
     for i in range(0, number_of_layers):
         layer_values.append(lv)
 
-    target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
-
-    return json.dumps({
+    details = {
         'calculation_id': calculation_id,
         'state': state,
         'message': message,
         'files': os.listdir(target_directory),
         'times': times,
         'layer_values': layer_values
-    })
+    }
+
+    json.dump(details, open(calculation_details_file, 'x'))
+    return json.dumps(details)
 
 
 def valid_json_file(file):

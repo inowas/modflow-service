@@ -101,6 +101,12 @@ def get_calculation_details_json(calculation_id, data, path):
     except TypeError:
         state = 404
 
+    stateLogfile = os.path.join(path, 'state.log')
+    if os.path.isfile(stateLogfile):
+        if app.config['DEBUG']:
+            print('Read state from file')
+        state = int(Path(stateLogfile).read_text())
+
     heads = ReadHead(path)
     budget = ReadBudget(path)
     concentration = ReadConcentration(path)

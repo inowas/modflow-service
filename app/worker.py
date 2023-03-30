@@ -100,6 +100,7 @@ def calculate(idx, calculation_id, logger):
     conn = db_connect()
     conn.set_trace_callback(logger.debug)
     cur = conn.cursor()
+    write_state(target_directory, 100)
     cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (100, datetime.now(), idx))
     conn.commit()
 

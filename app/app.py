@@ -644,7 +644,7 @@ def get_download_model(calculation_id):
         data,
         mimetype='application/zip',
         as_attachment=True,
-        attachment_filename='model-calculation-{}.zip'.format(calculation_id)
+        download_name='model-calculation-{}.zip'.format(calculation_id)
     )
 
 

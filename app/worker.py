@@ -6,11 +6,10 @@ import sqlite3 as sql
 import traceback
 from time import sleep
 
-from FlopyAdapter.Calculation import InowasFlopyCalculationAdapter
+from utils.FlopyAdapter.Calculation import InowasFlopyCalculationAdapter
 
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
-
 
 def db_connect():
     return sql.connect(DB_LOCATION)

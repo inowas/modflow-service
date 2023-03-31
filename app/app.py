@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
+from utils.FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
 from flask import abort, Flask, request, redirect, render_template, Response, send_file, make_response, jsonify
 from flask_cors import CORS, cross_origin
 import pandas as pd
@@ -623,7 +623,9 @@ def get_results_observations(calculation_id):
 
     try:
         df = pd.read_csv(hob_out_file, delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
-        return df.to_json(orient='records')
+        json_data = df.to_json(orient='records')
+        df.close()
+        return json_data
     except:
         abort(500, 'Error converting head observation output file.')
 

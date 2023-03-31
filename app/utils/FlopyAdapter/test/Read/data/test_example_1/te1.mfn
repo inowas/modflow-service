@@ -1,0 +1,15 @@
+# MODFLOW 2005
+# Obs-Sen-Pes Process Input Files
+CHOB               8   te1.chob
+#
+# Global Input Files
+DIS                9   te1.dis
+#
+# Flow Process Input Files
+BAS6               10  te1.ba6
+LPF                11  te1.lpf
+OC                 12  te1.oc
+RCH                13  te1.rch
+WEL                16  te1.wel
+CHD                14  te1.chd
+PCG                15  te1.pcg

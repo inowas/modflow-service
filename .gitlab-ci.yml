@@ -17,6 +17,14 @@ before_script:
   - docker info
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN $CI_REGISTRY
 
+test:
+  image: inowas/modflow-build:latest
+  stage: test
+
+  script:
+    - make install
+    - make test
+
 build:dev:
   stage: build
   script:

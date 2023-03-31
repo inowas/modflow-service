@@ -21,16 +21,6 @@ test:
     - make install
     - make test
 
-test:
-  before_script:
-    - docker pull inowas/modflow-build:latest
-  image: inowas/modflow-build:latest
-  stage: test
-
-  script:
-    - make install
-    - make test
-
 build:dev:
   stage: build
   before_script:

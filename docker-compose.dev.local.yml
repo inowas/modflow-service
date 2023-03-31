@@ -12,7 +12,7 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONIOENCODING=UTF-8
     ports:
-      - "5000:5000"
+      - "8080:5000"
     command: [ "python", "-u", "app.py" ]
 
   worker:

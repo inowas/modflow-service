@@ -18,6 +18,8 @@ before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN $CI_REGISTRY
 
 test:
+  before_script:
+    - docker pull inowas/modflow-build:latest
   image: inowas/modflow-build:latest
   stage: test
 

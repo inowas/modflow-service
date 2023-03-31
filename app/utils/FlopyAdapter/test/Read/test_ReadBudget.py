@@ -32,7 +32,7 @@ class ReadBudgetTest(unittest.TestCase):
             data_totim_4, {
                 'STORAGE_IN': 0.0, 'CONSTANT_HEAD_IN': 1814.4, 'RECHARGE_IN': 534600.0, 'TOTAL_IN': 536414.4,
                 'STORAGE_OUT': -169607.81, 'CONSTANT_HEAD_OUT': -366806.0, 'RECHARGE_OUT': -0.0,
-                'TOTAL_OUT': -536413.8, 'IN-OUT': 0.5625, 'PERCENT_DISCREPANCY': 0.0, 'tslen': 3.0
+                'TOTAL_OUT': -536413.8, 'IN-OUT': 0.5625, 'PERCENT_DISCREPANCY': 0.0
             }
         )
 

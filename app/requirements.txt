@@ -21,6 +21,7 @@ scipy>=1.5.3
 six>=1.15.0
 stevedore>=3.2.2
 urllib3==1.26.15
+utm~=0.7.0
 virtualenv>=20.1.0
 virtualenv-clone>=0.5.4
 virtualenvwrapper>=4.8.4

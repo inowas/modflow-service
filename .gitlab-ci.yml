@@ -14,8 +14,6 @@ variables:
   DOCKER_TLS_CERTDIR: "/certs"
 
 test:
-  before_script:
-    - docker pull inowas/modflow-build:latest
   image: inowas/modflow-build:latest
   stage: test
 

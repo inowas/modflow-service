@@ -8,7 +8,7 @@ all:
 	@echo "    Installs package in your system."
 
 install: venv
-	pip --version && pip install app
+	pip --version && pip install -r app/requirements.txt
 
 test: venv
 	python3 -m unittest discover -s app

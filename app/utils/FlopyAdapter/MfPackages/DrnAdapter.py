@@ -54,7 +54,8 @@ class DrnAdapter:
             "dtype": None,
             "extension": "drn",
             "unitnumber": None,
-            "options": None
+            "options": None,
+            "filenames": None,
         }
 
         return default
@@ -67,6 +68,7 @@ class DrnAdapter:
             "dtype": package.dtype,
             "extension": package.extension,
             "unitnumber": package.unitnumber,
-            "options": package.options
+            "options": package.options,
+            "filenames": package.filenames,
         }
         return content

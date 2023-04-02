@@ -56,7 +56,7 @@ class SsmAdapter:
             "dtype": None,
             "extension": 'ssm',
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
         return default
 

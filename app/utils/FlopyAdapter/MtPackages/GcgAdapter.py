@@ -45,7 +45,8 @@ class GcgAdapter:
             "cclose": 1e-05,
             "iprgcg": 0,
             "extension": 'gcg',
-            "unitnumber": None
+            "unitnumber": None,
+            "filenames": None,
         }
         return default
 

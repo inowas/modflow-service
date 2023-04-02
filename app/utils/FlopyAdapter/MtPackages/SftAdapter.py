@@ -52,7 +52,7 @@ class SftAdapter:
             "nsfinit": 0,
             "mxsfbc": 0,
             "icbcsf": 0,
-            "ioutobs": None,
+            "ioutobs": 0,
             "ietsfr": 0,
             "isfsolv": 1,
             "wimp": 0.5,
@@ -69,7 +69,7 @@ class SftAdapter:
             "unitnumber": None,
             "filenames": None,
             "dtype": None,
-            "extension": 'sft'
+            "extension": 'sft',
         }
         return default
 

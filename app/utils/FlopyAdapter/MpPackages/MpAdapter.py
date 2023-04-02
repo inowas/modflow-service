@@ -29,7 +29,7 @@ class MpAdapter:
 
     def get_package(self):
         content = self.merge()
-        return mp.Modpath(
+        return mp.Modpath6(
             **content
         )
 
@@ -40,7 +40,7 @@ class MpAdapter:
             "simfile_ext": 'mpsim',
             "namefile_ext": 'mpnam',
             "version": 'modpath',
-            "exe_name": 'mp6.exe',
+            "exe_name": 'mp6',
             "modflowmodel": None,
             "dis_file": None,
             "dis_unit": 87,
@@ -50,7 +50,7 @@ class MpAdapter:
             "external_path": None,
             "verbose": False,
             "load": True,
-            "listunit": 7
+            "listunit": 7,
         }
 
     @staticmethod
@@ -70,5 +70,5 @@ class MpAdapter:
             "external_path": package.external_path,
             "verbose": package.verbose,
             "load": package.load,
-            "listunit": package.listunit
+            "listunit": package.listunit,
         }

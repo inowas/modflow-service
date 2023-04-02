@@ -38,11 +38,12 @@ class RchAdapter:
     def default():
         return {
             "nrchop": 3,
-            "ipakcb": 0,
-            "rech": 0,
+            "ipakcb": None,
+            "rech": 0.001,
             "irch": 0,
             "extension": 'rch',
-            "unitnumber": 19
+            "unitnumber": None,
+            "filenames": None,
         }
 
     @staticmethod

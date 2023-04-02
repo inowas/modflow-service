@@ -44,7 +44,7 @@ class TobAdapter:
             "iOutFlux": 0,
             "extension": 'tob',
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
         return default
 

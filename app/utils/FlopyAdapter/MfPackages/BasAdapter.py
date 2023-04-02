@@ -45,7 +45,8 @@ class BasAdapter:
             "stoper": None,
             "hnoflo": -999.99,
             "extension": 'bas',
-            "unitnumber": 13
+            "unitnumber": None,
+            "filenames": None,
         }
         return default
 
@@ -60,6 +61,7 @@ class BasAdapter:
             "stoper": package.stoper,
             "hnoflo": package.hnoflo,
             "extension": package.extension[0],
-            "unitnumber": package.unit_number[0]
+            "unitnumber": package.unit_number[0],
+            "filenames": package.filenames,
         }
         return content

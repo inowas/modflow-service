@@ -74,7 +74,7 @@ class LakAdapter:
             "unitnumber": None,
             "filenames": None,
             "options": None,
-            "lwrt": 0
+            "lwrt": 0,
         }
 
         return default

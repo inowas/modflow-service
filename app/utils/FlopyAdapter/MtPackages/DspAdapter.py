@@ -45,7 +45,7 @@ class DspAdapter:
             "extension": 'dsp',
             "multiDiff": False,
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
         return default
 

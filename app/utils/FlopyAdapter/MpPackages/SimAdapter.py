@@ -29,7 +29,7 @@ class SimAdapter:
 
     def get_package(self, _mp):
         content = self.merge()
-        return mp.ModpathSim(
+        return mp.Modpath6Sim(
             _mp,
             **content
         )
@@ -65,7 +65,7 @@ class SimAdapter:
             "retard_fac": 1.0,
             "retard_fcCB": 1.0,
             "strt_file": None,
-            "extension": 'mpsim'
+            "extension": 'mpsim',
         }
 
     @staticmethod

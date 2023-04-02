@@ -48,8 +48,10 @@ class OcAdapter:
             "cboufm": None,
             "compact": True,
             "stress_period_data": None,
-            "extension": ['oc', 'hds', 'ddn', 'cbc'],
-            "unitnumber": [14, 51, 52, 53]
+            "extension": ['oc', 'hds', 'ddn', 'cbc', 'ibo'],
+            "unitnumber": None,
+            "filenames": None,
+            "label": "LABEL",
         }
 
         return default

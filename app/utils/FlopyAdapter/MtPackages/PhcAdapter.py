@@ -53,7 +53,8 @@ class PhcAdapter:
             "surfkin": [],
             "imobkin": [],
             "extension": 'phc',
-            "unitnumber": None
+            "unitnumber": None,
+            "filenames": None,
         }
 
     @staticmethod
@@ -75,5 +76,6 @@ class PhcAdapter:
             "surfkin": package.surfkin,
             "imobkin": package.imobkin,
             "extension": package.extension,
-            "unitnumber": package.unitnumber
+            "unitnumber": package.unitnumber,
+            "filenames": package.filenames,
         }

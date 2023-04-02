@@ -46,7 +46,8 @@ class LktAdapter:
             "dtype": None,
             "extension": 'lkt',
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
+            "iprn": -1,
         }
         return default
 
@@ -62,6 +63,7 @@ class LktAdapter:
             "dtype": package.dtype,
             "extension": package.extension,
             "unitnumber": package.unitnumber,
-            "filenames": package.filenames
+            "filenames": package.filenames,
+            "iprn": package.iprn,
         }
         return content

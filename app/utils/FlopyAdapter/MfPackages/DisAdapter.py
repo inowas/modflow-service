@@ -53,10 +53,11 @@ class DisAdapter:
             "itmuni": 4,
             "lenuni": 2,
             "extension": 'dis',
-            "unitnumber": 11,
+            "unitnumber": None,
+            "filenames": None,
             "xul": None,
             "yul": None,
-            "rotation": 0.0,
+            "rotation": None,
             "proj4_str": None,
             "start_datetime": None
         }
@@ -82,10 +83,11 @@ class DisAdapter:
             "lenuni": package.lenuni,
             "extension": package.extension[0],
             "unitnumber": package.unit_number[0],
-            # "xul": package.xul,
-            # "yul": package.yul,
-            # "rotation": package.rotation,
-            # "proj4_str": package.proj4_str,
+            "filenames": package.filenames,
+            "xul": package.xul,
+            "yul": package.yul,
+            "rotation": package.rotation,
+            "proj4_str": package.proj4_str,
             "start_datetime": package.start_datetime
         }
         return content

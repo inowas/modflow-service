@@ -42,7 +42,7 @@ class LpfAdapter:
             "chani": 1.0,
             "layvka": 0,
             "laywet": 0,
-            "ipakcb": 53,
+            "ipakcb": None,
             "hdry": -1e+30,
             "iwdflg": 0,
             "wetfct": 0.1,
@@ -61,7 +61,9 @@ class LpfAdapter:
             "nocvcorrection": False,
             "novfc": False,
             "extension": 'lpf',
-            "unitnumber": 15
+            "unitnumber": None,
+            "filenames": None,
+            "add_package": True,
         }
 
         return default
@@ -93,6 +95,8 @@ class LpfAdapter:
             # "nocvcorrection": package.nocvcorrection,
             # "novfc": package.novfc,
             "extension": package.extension[0],
-            "unitnumber": package.unit_number[0]
+            "unitnumber": package.unit_number[0],
+            "filenames": package.filenames,
+            "add_package": package.add_package,
         }
         return content

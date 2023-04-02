@@ -51,7 +51,8 @@ class VscAdapter:
             "invisc": -1,
             "visc": -1,
             "extension": 'vsc',
-            "unitnumber": None
+            "unitnumber": None,
+            "filenames": None,
         }
 
     @staticmethod
@@ -72,5 +73,5 @@ class VscAdapter:
             "visc": package.visc,
             "extension": package.extension,
             "unitnumber": package.unitnumber,
-            "filenames": package.filenames
+            "filenames": package.filenames,
         }

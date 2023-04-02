@@ -30,7 +30,7 @@ class BasAdapter:
 
     def get_package(self, _mp):
         content = self.merge()
-        return mp.ModpathBas(
+        return mp.Modpath6Bas(
             _mp,
             **content
         )

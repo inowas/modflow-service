@@ -46,7 +46,7 @@ class EvtAdapter:
             "extension": 'evt',
             "unitnumber": None,
             "filenames": None,
-            "external": True
+            "external": True,
         }
 
     @staticmethod

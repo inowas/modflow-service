@@ -55,7 +55,7 @@ class AdvAdapter:
             "dchmoc": 0.0001,
             "extension": 'adv',
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
 
     @staticmethod

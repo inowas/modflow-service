@@ -50,7 +50,8 @@ class PcgAdapter:
             "dampt": 1.0,
             "ihcofadd": 0,
             "extension": 'pcg',
-            "unitnumber": 27
+            "unitnumber": None,
+            "filenames": None,
         }
 
         return default

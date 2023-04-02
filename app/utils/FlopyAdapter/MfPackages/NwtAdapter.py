@@ -37,7 +37,7 @@ class NwtAdapter:
     @staticmethod
     def default():
         default = {
-            "headtol": 1E-2,
+            "headtol": 0.01,
             "fluxtol": 500,
             "maxiterout": 100,
             "thickfact": 1E-5,
@@ -70,7 +70,8 @@ class NwtAdapter:
             "hclosexmd": 1e-4,
             "mxiterxmd": 50,
             "extension": 'nwt',
-            "unitnumber": 32
+            "unitnumber": None,
+            "filenames": None,
         }
 
         return default

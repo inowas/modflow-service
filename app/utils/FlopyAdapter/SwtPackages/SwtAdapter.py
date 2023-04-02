@@ -48,7 +48,7 @@ class SwtAdapter:
             "external_path": None,
             "verbose": False,
             "load": True,
-            "silent": 0
+            "silent": 0,
         }
 
     @staticmethod

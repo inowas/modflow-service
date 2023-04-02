@@ -51,12 +51,14 @@ class WelAdapter:
     @staticmethod
     def default():
         default = {
-            "ipakcb": 0,
+            "ipakcb": None,
             "stress_period_data": None,
             "dtype": None,
             "extension": 'wel',
-            "unitnumber": 20,
-            "options": None
+            "options": None,
+            "unitnumber": None,
+            "filenames": None,
+            "add_package": True,
         }
 
         return default

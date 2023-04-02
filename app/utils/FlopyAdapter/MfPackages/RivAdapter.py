@@ -49,12 +49,13 @@ class RivAdapter:
     @staticmethod
     def default():
         default = {
-            "ipakcb": 0,
+            "ipakcb": None,
             "stress_period_data": None,
             "dtype": None,
             "extension": "riv",
-            "unitnumber": 18,
-            "options": None
+            "options": None,
+            "unitnumber": None,
+            "filenames": None,
         }
 
         return default

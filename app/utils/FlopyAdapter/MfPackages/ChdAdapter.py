@@ -51,8 +51,10 @@ class ChdAdapter:
         default = {
             "stress_period_data": None,
             "dtype": None,
+            "options": None,
             "extension": 'chd',
-            "unitnumber": 24
+            "unitnumber": None,
+            "filenames": None,
         }
 
         return default
@@ -64,6 +66,7 @@ class ChdAdapter:
             "stress_period_data": {k: [list(i) for i in v] for k, v in package.stress_period_data.data.items()},
             # "dtype": package.dtype,
             "extension": package.extension[0],
-            "unitnumber": package.unit_number[0]
+            "unitnumber": package.unit_number[0],
+            "filenames": package.filenames,
         }
         return content

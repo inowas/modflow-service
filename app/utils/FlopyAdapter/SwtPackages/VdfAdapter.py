@@ -41,12 +41,11 @@ class VdfAdapter:
             "mfnadvfd": 1,
             "nswtcpl": 1,
             "iwtable": 1,
-            "densemin": 1.0,
-            "densemax": 1.025,
+            "densemin": 0,
+            "densemax": 0,
             "dnscrit": 0.01,
             "denseref": 1.0,
             "denseslp": 0.025,
-            "drhodc": 0.01,
             "crhoref": 0,
             "firstdt": 0.001,
             "indense": 1,
@@ -55,7 +54,8 @@ class VdfAdapter:
             "drhodprhd": 0.00446,
             "prhdref": 0.0,
             "extension": 'vdf',
-            "unitnumber": None
+            "unitnumber": None,
+            "filenames": None,
         }
         return default
 
@@ -80,5 +80,5 @@ class VdfAdapter:
             "prhdref": package.prhdref,
             "extension": package.extension,
             "unitnumber": package.unitnumber,
-            "filenames": package.filenames
+            "filenames": package.filenames,
         }

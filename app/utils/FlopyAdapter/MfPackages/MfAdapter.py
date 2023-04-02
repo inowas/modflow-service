@@ -39,7 +39,7 @@ class MfAdapter:
             "modelname": "modflowtest",
             "namefile_ext": 'nam',
             "version": "mf2005",
-            "exe_name": "mf2005.exe",
+            "exe_name": "mf2005",
             "structured": True,
             "listunit": 2,
             "model_ws": '.',

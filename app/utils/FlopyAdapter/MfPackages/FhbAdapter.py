@@ -54,7 +54,7 @@ class FhbAdapter:
             "ds7": None,
             "extension": 'fhb',
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
 
         return default

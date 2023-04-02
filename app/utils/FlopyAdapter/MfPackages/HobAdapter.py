@@ -56,14 +56,16 @@ class HobAdapter:
     @staticmethod
     def default():
         default = {
-            "iuhobsv": 1051,
+            "iuhobsv": None,
             "hobdry": 0,
             "tomulth": 1.0,
             "obs_data": None,
             "hobname": None,
             "extension": 'hob',
+            "no_print": False,
+            "options": None,
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
         return default
 
@@ -77,6 +79,6 @@ class HobAdapter:
             "hobname": package.hobname,
             "extension": package.extension[0],
             "unitnumber": package.unit_number[0],
-            "filenames": package.filenames
+            "filenames": package.filenames,
         }
         return content

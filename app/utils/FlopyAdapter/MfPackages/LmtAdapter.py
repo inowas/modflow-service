@@ -44,7 +44,7 @@ class LmtAdapter:
             "extension": 'lmt6',
             "package_flows": [],
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
 
         return default
@@ -59,6 +59,6 @@ class LmtAdapter:
             "extension": package.extension[0],
             "package_flows": package.package_flows,
             "unitnumber": package.unit_number[0],
-            # "filenames": None
+            "filenames": package.filenames,
         }
         return content

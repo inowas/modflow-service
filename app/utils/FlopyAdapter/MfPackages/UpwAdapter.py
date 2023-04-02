@@ -42,7 +42,7 @@ class UpwAdapter:
             "chani": 1.0,
             "layvka": 0,
             "laywet": 0,
-            "ipakcb": 53,
+            "ipakcb": None,
             "hdry": -1e+30,
             "iphdry": 0,
             "hk": 1.0,
@@ -51,8 +51,10 @@ class UpwAdapter:
             "ss": 1e-5,
             "sy": 0.15,
             "vkcb": 0.0,
+            "noparcheck": False,
             "extension": 'upw',
-            "unitnumber": 31
+            "unitnumber": None,
+            "filenames": None,
         }
 
         return default

@@ -49,7 +49,7 @@ class RctAdapter:
             "rc2": None,
             "extension": 'rct',
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
         return default
 

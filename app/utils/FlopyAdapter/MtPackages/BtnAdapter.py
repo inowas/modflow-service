@@ -87,7 +87,7 @@ class BtnAdapter:
             "species_names": None,
             "extension": 'btn',
             "unitnumber": None,
-            "filenames": None
+            "filenames": None,
         }
         return default
 

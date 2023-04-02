@@ -55,7 +55,8 @@ class GhbAdapter:
             "no_print": False,
             "options": None,
             "extension": 'ghb',
-            "unitnumber": 23
+            "unitnumber": None,
+            "filenames": None,
         }
 
         return default
@@ -69,6 +70,7 @@ class GhbAdapter:
             "no_print": package.no_print,
             "options": package.options,
             "extension": package.extension,
-            "unitnumber": package.unitnumber
+            "unitnumber": package.unitnumber,
+            "filenames": package.filenames,
         }
         return content

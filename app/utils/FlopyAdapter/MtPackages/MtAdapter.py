@@ -37,7 +37,6 @@ class MtAdapter:
         default = {
             "modelname": 'mt3dtest',
             "namefile_ext": 'nam',
-            "modflowmodel": None,
             "ftlfilename": 'mt3d_link.ftl',
             "ftlfree": False,
             "version": 'mt3dms',

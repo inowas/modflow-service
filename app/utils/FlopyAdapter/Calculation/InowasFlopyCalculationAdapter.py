@@ -258,3 +258,12 @@ class InowasFlopyCalculationAdapter:
 
     def response_message(self):
         return self._report
+
+    def short_response_message(self):
+        if len(self._report.split('\n')) < 50:
+            return self._report
+
+        first_lines = '\n'.join(self._report.split('\n')[:40])
+        last_lines = '\n'.join(self._report.split('\n')[-10:])
+
+        return first_lines + '\n\n...\n\n' + last_lines

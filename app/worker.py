@@ -110,7 +110,7 @@ def calculate(idx, calculation_id, logger):
         logger.info(str(flopy.response_message()))
 
         cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
-                    (state, flopy.response_message(), datetime.now(), idx))
+                    (state, flopy.short_response_message(), datetime.now(), idx))
         conn.commit()
         write_state(target_directory, state)
     except:

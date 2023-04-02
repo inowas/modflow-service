@@ -130,17 +130,17 @@ def set_logger(target_directory, calculation_id):
     logger.setLevel(logging.DEBUG)
 
     debug_log_file = os.path.join(target_directory, 'debug.log')
-    fhd = logging.FileHandler(debug_log_file, 'a+')
+    fhd = logging.FileHandler(debug_log_file, 'w')
     fhd.setLevel(logging.DEBUG)
     logger.addHandler(fhd)
 
     error_log_file = os.path.join(target_directory, 'error.log')
-    fhe = logging.FileHandler(error_log_file, 'a+')
+    fhe = logging.FileHandler(error_log_file, 'w')
     fhe.setLevel(logging.ERROR)
     logger.addHandler(fhe)
 
     modflow_log_file = os.path.join(target_directory, 'modflow.log')
-    fhi = logging.FileHandler(modflow_log_file, 'a+')
+    fhi = logging.FileHandler(modflow_log_file, 'w')
     fhi.setLevel(logging.INFO)
     logger.addHandler(fhi)
     return logger
@@ -160,6 +160,7 @@ def run():
         logger = set_logger(target_directory, calculation_id)
 
         try:
+
             calculate(idx, calculation_id, logger)
         except:
             conn = db_connect()

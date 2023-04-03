@@ -1,0 +1,33 @@
+Calculating: 6f5aa94cb9220d06a9e629263df5f03f
+Target Directory: /modflow/6f5aa94cb9220d06a9e629263df5f03f
+Filename: /modflow/6f5aa94cb9220d06a9e629263df5f03f/configuration.json
+Summary:
+Author: 
+Project: 
+Model Id: c7bfa066-37bf-4a82-bd77-55383d307f70
+Calculation Id: 6f5aa94cb9220d06a9e629263df5f03f
+Type: None
+Version: 3.2.12
+Running flopy calculation for model-id 'c7bfa066-37bf-4a82-bd77-55383d307f70' with calculation-id '6f5aa94cb9220d06a9e629263df5f03f'
+BEGIN 
+UPDATE calculations SET state = 100, updated_at = '2020-11-04 10:45:43.081269' WHERE id = 1683
+COMMIT
+Flopy-state: 400
+ 
+                                  MODFLOW-2005      
+    U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUND-WATER FLOW MODEL 
+                             Version 1.12.00 2/3/2017                         
+ 
+ Using NAME file: mf.nam  
+ Run start date and time (yyyy/mm/dd hh:mm:ss): 2020/11/04 10:45:43 
+
+BEGIN 
+UPDATE calculations SET state = 400, message = ' 
+                                  MODFLOW-2005      
+    U.S. GEOLOGICAL SURVEY MODULAR FINITE-DIFFERENCE GROUND-WATER FLOW MODEL 
+                             Version 1.12.00 2/3/2017                         
+ 
+ Using NAME file: mf.nam  
+ Run start date and time (yyyy/mm/dd hh:mm:ss): 2020/11/04 10:45:43 
+', updated_at = '2020-11-04 10:45:43.413696' WHERE id = 1683
+COMMIT

@@ -6,11 +6,10 @@ import sqlite3 as sql
 import traceback
 from time import sleep
 
-from FlopyAdapter.Calculation import InowasFlopyCalculationAdapter
+from utils.FlopyAdapter.Calculation import InowasFlopyCalculationAdapter
 
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
-
 
 def db_connect():
     return sql.connect(DB_LOCATION)
@@ -100,6 +99,7 @@ def calculate(idx, calculation_id, logger):
     conn = db_connect()
     conn.set_trace_callback(logger.debug)
     cur = conn.cursor()
+    write_state(target_directory, 100)
     cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (100, datetime.now(), idx))
     conn.commit()
 
@@ -110,7 +110,7 @@ def calculate(idx, calculation_id, logger):
         logger.info(str(flopy.response_message()))
 
         cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
-                    (state, flopy.response_message(), datetime.now(), idx))
+                    (state, flopy.short_response_message(), datetime.now(), idx))
         conn.commit()
         write_state(target_directory, state)
     except:
@@ -130,17 +130,17 @@ def set_logger(target_directory, calculation_id):
     logger.setLevel(logging.DEBUG)
 
     debug_log_file = os.path.join(target_directory, 'debug.log')
-    fhd = logging.FileHandler(debug_log_file, 'a+')
+    fhd = logging.FileHandler(debug_log_file, 'w')
     fhd.setLevel(logging.DEBUG)
     logger.addHandler(fhd)
 
     error_log_file = os.path.join(target_directory, 'error.log')
-    fhe = logging.FileHandler(error_log_file, 'a+')
+    fhe = logging.FileHandler(error_log_file, 'w')
     fhe.setLevel(logging.ERROR)
     logger.addHandler(fhe)
 
     modflow_log_file = os.path.join(target_directory, 'modflow.log')
-    fhi = logging.FileHandler(modflow_log_file, 'a+')
+    fhi = logging.FileHandler(modflow_log_file, 'w')
     fhi.setLevel(logging.INFO)
     logger.addHandler(fhi)
     return logger
@@ -160,6 +160,7 @@ def run():
         logger = set_logger(target_directory, calculation_id)
 
         try:
+
             calculate(idx, calculation_id, logger)
         except:
             conn = db_connect()

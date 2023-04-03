@@ -638,8 +638,7 @@ def get_download_model(calculation_id):
     with zipfile.ZipFile(data, mode='w') as z:
         for root, dirs, files in os.walk("."):
             for filename in files:
-                if not filename.endswith('.json'):
-                    z.write(filename)
+                z.write(filename)
 
     data.seek(0)
     return send_file(

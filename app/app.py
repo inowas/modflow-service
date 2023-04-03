@@ -345,8 +345,7 @@ def calculation_details(calculation_id):
     if not os.path.exists(modflow_file):
         abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
 
-    list_file = os.path.join(path, 'mf.list')
-    if not os.path.exists(list_file):
+    if not glob.glob(path + '/*.list'):
         insert_new_calculation(calculation_id)
 
     data = read_json(modflow_file).get('data').get('mf')

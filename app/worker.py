@@ -160,7 +160,6 @@ def run():
         logger = set_logger(target_directory, calculation_id)
 
         try:
-
             calculate(idx, calculation_id, logger)
         except:
             conn = db_connect()

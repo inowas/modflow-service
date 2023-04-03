@@ -219,10 +219,10 @@ def assert_is_valid(content):
 def insert_new_calculation(calculation_id):
     with db_connect() as con:
         cur = con.cursor()
-        cur.execute('SELECT * FROM calculations WHERE calculation_id = ? AND state < ?', (calculation_id, 200))
-        result = cur.fetchall()
-        if len(result) > 0:
-            return
+        # cur.execute('SELECT * FROM calculations WHERE calculation_id = ? AND state < ?', (calculation_id, 200))
+        # result = cur.fetchall()
+        # if len(result) > 0:
+        #    return
 
         cur.execute(
             'INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)',
@@ -638,8 +638,7 @@ def get_download_model(calculation_id):
     with zipfile.ZipFile(data, mode='w') as z:
         for root, dirs, files in os.walk("."):
             for filename in files:
-                if not filename.endswith('.json'):
-                    z.write(filename)
+                z.write(filename)
 
     data.seek(0)
     return send_file(

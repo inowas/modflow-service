@@ -90,12 +90,6 @@ def get_calculation_details_json(calculation_id, data, path):
     except TypeError:
         message = ""
 
-    mfLogfile = os.path.join(path, 'modflow.log')
-    if os.path.isfile(mfLogfile):
-        if app.config['DEBUG']:
-            print('Read message from file')
-        message = Path(mfLogfile).read_text()
-
     try:
         state = calculation['state']
     except TypeError:

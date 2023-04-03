@@ -128,16 +128,16 @@ class InowasFlopyCalculationAdapter:
         model.write_input()
 
     @staticmethod
-    def run_model(model, model_type):
+    def run_model(model, model_type) -> (bool, str):
         normal_msg = 'normal termination'
         if model_type == 'mt':
             normal_msg = 'Program completed'
 
-        print('Run model.')
+        print('Run model type: %s.' % model_type)
         print('Model nam-file: %s.' % model.namefile)
         print('Model executable: %s.' % model.exe_name)
         success, report = model.run_model(report=True, silent=True, normal_msg=normal_msg)
-        return success, ' \n'.join(str(e) for e in report)
+        return success, '\n'.join(str(line) for line in report)
 
     @staticmethod
     def run_hob_statistics(model):

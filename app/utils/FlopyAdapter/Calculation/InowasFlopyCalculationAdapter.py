@@ -133,7 +133,7 @@ class InowasFlopyCalculationAdapter:
         if model_type == 'mt':
             normal_msg = 'Program completed'
 
-        print('Run model.')
+        print('Run model type: %s.' % model_type)
         print('Model nam-file: %s.' % model.namefile)
         print('Model executable: %s.' % model.exe_name)
         success, report = model.run_model(report=True, silent=True, normal_msg=normal_msg)

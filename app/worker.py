@@ -5,7 +5,6 @@ import logging
 import sqlite3 as sql
 import traceback
 from time import sleep
-from pathlib import Path
 
 from utils.FlopyAdapter.Calculation import InowasFlopyCalculationAdapter
 
@@ -43,6 +42,13 @@ def write_state(target_directory, state):
     file = os.path.join(target_directory, 'state.log')
     f = open(file, "w")
     f.write(str(state))
+    f.close()
+
+
+def model_check(target_directory, flopy):
+    file = os.path.join(target_directory, 'check.log')
+    f = open(file, "w")
+    flopy.check_model(f)
     f.close()
 
 
@@ -109,11 +115,6 @@ def calculate(idx, calculation_id, logger):
                     (state, flopy.short_response_message(), datetime.now(), idx))
         conn.commit()
         write_state(target_directory, state)
-        try:
-            flopy.check_model(Path(os.path.join(target_directory, 'check.log')))
-        except:
-            logger.error(traceback.format_exc())
-            pass
     except:
         write_state(target_directory, 500)
         logger.error(traceback.format_exc())

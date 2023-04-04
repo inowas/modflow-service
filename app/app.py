@@ -80,10 +80,6 @@ def get_number_of_calculations(state=200):
 
 def get_calculation_details_json(calculation_id, data, path):
     target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
-    calculation_details_file = os.path.join(target_directory, 'calculation_details.json')
-    if os.path.exists(calculation_details_file):
-        return send_file(calculation_details_file, mimetype='application/json')
-
     calculation = get_calculation_by_id(calculation_id)
     try:
         message = calculation["message"]
@@ -100,6 +96,24 @@ def get_calculation_details_json(calculation_id, data, path):
         if app.config['DEBUG']:
             print('Read state from file')
         state = int(Path(stateLogfile).read_text())
+
+    if 200 != state:
+        modflowLog = None
+        if os.path.isfile(os.path.join(path, 'modflow.log')):
+            modflowLog = Path(os.path.join(path, 'modflow.log')).read_text()
+        details = {
+            'calculation_id': calculation_id,
+            'state': state,
+            'message': modflowLog if modflowLog else message,
+            'files': os.listdir(target_directory),
+        }
+        response = make_response(json.dumps(details))
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    calculation_details_file = os.path.join(target_directory, 'calculation_details.json')
+    if os.path.exists(calculation_details_file):
+        return send_file(calculation_details_file, mimetype='application/json')
 
     heads = ReadHead(path)
     budget = ReadBudget(path)
@@ -346,7 +360,9 @@ def calculation_details(calculation_id):
     path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
 
     if request.content_type and 'application/json' in request.content_type:
-        return get_calculation_details_json(calculation_id, data, path)
+        response = make_response(get_calculation_details_json(calculation_id, data, path))
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
     return render_template('details.html', id=str(calculation_id), data=data, path=path)
 
@@ -694,6 +710,14 @@ def metrics():
     CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
     return Response(prometheus_client.generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
+@app.after_request
+def after_request(response):
+    if response.headers['Content-Type'] == 'application/json':
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+
+    return response
 
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
@@ -703,6 +727,7 @@ if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     app.config['DEBUG'] = True
 
     db_init()

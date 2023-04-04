@@ -106,6 +106,30 @@ def get_calculation_details_json(calculation_id, data, path):
             'state': state,
             'message': modflowLog if modflowLog else message,
             'files': os.listdir(target_directory),
+            'total_times': [],
+            'head': {
+                'idx': [],
+                'total_times': [],
+                'kstpkper': [],
+                'layers': 0
+            },
+            'budget': {
+                'idx': [],
+                'total_times': [],
+                'kstpkper': []
+            },
+            'concentration': {
+                'idx': [],
+                'total_times': [],
+                'kstpkper': [],
+                'layers': 0
+            },
+            'drawdown': {
+                'idx': [],
+                'total_times': [],
+                'kstpkper': [],
+                'layers': 0
+            }
         }
         response = make_response(json.dumps(details))
         response.headers['Content-Type'] = 'application/json'
@@ -113,7 +137,7 @@ def get_calculation_details_json(calculation_id, data, path):
 
     calculation_details_file = os.path.join(target_directory, 'calculation_details.json')
     if os.path.exists(calculation_details_file):
-        return send_file(calculation_details_file, mimetype='application/json')
+        return send_file(calculation_details_file, mimetype='application/json', etag=False)
 
     heads = ReadHead(path)
     budget = ReadBudget(path)

@@ -115,7 +115,11 @@ def calculate(idx, calculation_id, logger):
                     (state, flopy.short_response_message(), datetime.now(), idx))
         conn.commit()
         write_state(target_directory, state)
-        model_check(target_directory, flopy)
+        try:
+            model_check(target_directory, flopy)
+        except:
+            logger.error(traceback.format_exc())
+            pass
     except:
         write_state(target_directory, 500)
         logger.error(traceback.format_exc())

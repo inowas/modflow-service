@@ -129,7 +129,8 @@ def get_calculation_details_json(calculation_id, data, path):
                 'total_times': [],
                 'kstpkper': [],
                 'layers': 0
-            }
+            },
+            'layer_values': []
         }
         response = make_response(json.dumps(details))
         response.headers['Content-Type'] = 'application/json'
@@ -145,7 +146,6 @@ def get_calculation_details_json(calculation_id, data, path):
     drawdown = ReadDrawdown(path)
 
     total_times = [float(totim) for totim in heads.read_times()]
-
     times = {
         'start_date_time': data['dis']['start_datetime'],
         'time_unit': data['dis']['itmuni'],

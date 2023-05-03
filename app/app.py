@@ -50,6 +50,11 @@ def db_init():
     conn.execute(sql_command)
 
 
+def fs_init():
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+
+
 def db_connect():
     return sql.connect(DB_LOCATION)
 
@@ -710,4 +715,5 @@ if __name__ == '__main__':
     app.config['DEBUG'] = True
 
     db_init()
+    fs_init()
     app.run(debug=app.config['DEBUG'], host='0.0.0.0')

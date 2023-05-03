@@ -251,11 +251,6 @@ def assert_is_valid(content):
 def insert_new_calculation(calculation_id):
     with db_connect() as con:
         cur = con.cursor()
-        cur.execute('SELECT * FROM calculations WHERE calculation_id = ? AND state < ?', (calculation_id, 200))
-        result = cur.fetchall()
-        if len(result) > 0:
-            return
-
         cur.execute(
             'INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)',
             (calculation_id, 0, datetime.now(), datetime.now())

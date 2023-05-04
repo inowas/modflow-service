@@ -117,6 +117,8 @@ def calculate(idx, calculation_id, logger):
         write_state(target_directory, state)
     except:
         write_state(target_directory, 500)
+        cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
+                    (500, flopy.short_response_message(), datetime.now(), idx))
         logger.error(traceback.format_exc())
         pass
     finally:

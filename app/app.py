@@ -251,6 +251,12 @@ def assert_is_valid(content):
 def insert_new_calculation(calculation_id):
     with db_connect() as con:
         cur = con.cursor()
+        cur.execute('SELECT * FROM calculations WHERE calculation_id = ? AND state < ?', (calculation_id, 200))
+
+        result = cur.fetchall()
+        if len(result) > 0:
+            return
+
         cur.execute(
             'INSERT INTO calculations (calculation_id, state, created_at, updated_at) VALUES ( ?, ?, ?, ?)',
             (calculation_id, 0, datetime.now(), datetime.now())
@@ -733,6 +739,7 @@ def metrics():
     CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
     return Response(prometheus_client.generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
+
 @app.after_request
 def after_request(response):
     if response.headers['Content-Type'] == 'application/json':
@@ -741,6 +748,7 @@ def after_request(response):
         response.headers["Expires"] = "0"
 
     return response
+
 
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):

@@ -50,6 +50,11 @@ def db_init():
     conn.execute(sql_command)
 
 
+def fs_init():
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+
+
 def db_connect():
     return sql.connect(DB_LOCATION)
 
@@ -290,10 +295,6 @@ def upload_file():
                 abort(415, 'No selected file')
 
             temp_filename = str(uuid.uuid4()) + '.json'
-
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
-
             temp_file = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
             uploaded_file.save(temp_file)
 
@@ -762,4 +763,5 @@ if __name__ == '__main__':
     app.config['DEBUG'] = True
 
     db_init()
+    fs_init()
     app.run(debug=app.config['DEBUG'], host='0.0.0.0')

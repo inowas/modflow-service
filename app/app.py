@@ -663,7 +663,6 @@ def get_results_observations(calculation_id):
     try:
         df = pd.read_csv(hob_out_file, delim_whitespace=True, header=0, names=['simulated', 'observed', 'name'])
         json_data = df.to_json(orient='records')
-        df.close()
         return json_data
     except:
         abort(500, 'Error converting head observation output file.')

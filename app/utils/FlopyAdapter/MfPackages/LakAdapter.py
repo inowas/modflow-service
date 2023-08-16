@@ -27,7 +27,7 @@ class LakAdapter:
         for key in self._data:
             if key == 'sill_data' or 'flux_data':
                 if self._data[key] is not None:
-                    default[key] = self.to_tuples(self._data[key])
+                    default[key] = dict(enumerate(self._data[key]))
                 continue
 
             if key == 'stage_range' and self._data[key] is not None:

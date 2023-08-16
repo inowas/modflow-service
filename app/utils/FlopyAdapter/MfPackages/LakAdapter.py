@@ -34,7 +34,7 @@ class LakAdapter:
                 default[key] = list(map(tuple, self._data[key]))
                 continue
 
-            if key == 'lakearr' or key == 'bdlknc':
+            if key == 'lakarr' or key == 'bdlknc':
                 if self._data[key] is not None:
                     default[key] = np.array(self._data[key])
                 continue

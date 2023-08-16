@@ -36,7 +36,7 @@ class LakAdapter:
 
             if key == 'lakearr' or key == 'bdlknc':
                 if self._data[key] is not None:
-                    default[key] = np.array(self._data[key]).tolist()
+                    default[key] = np.array(self._data[key])
                 continue
 
             if key == 'stages' and self._data[key] is not None:

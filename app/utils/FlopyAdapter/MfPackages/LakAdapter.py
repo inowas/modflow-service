@@ -25,22 +25,22 @@ class LakAdapter:
     def merge(self):
         default = self.default()
         for key in self._data:
-            if key == 'sill_data' or 'flux_data':
+            if key == 'flux_data' or key == 'sill_data':
                 if self._data[key] is not None:
                     default[key] = dict(enumerate(self._data[key]))
                 continue
 
             if key == 'stage_range' and self._data[key] is not None:
-                default[key] = map(tuple, self._data[key])
+                default[key] = list(map(tuple, self._data[key]))
                 continue
 
-            if key == 'lakearr' or 'bdlknc':
+            if key == 'lakearr' or key == 'bdlknc':
                 if self._data[key] is not None:
-                    default[key] = np.array(self._data[key])
+                    default[key] = np.array(self._data[key]).tolist()
                 continue
 
             if key == 'stages' and self._data[key] is not None:
-                default[key] = np.array(self._data[key])
+                default[key] = np.array(self._data[key]).tolist()
                 continue
 
             default[key] = self._data[key]

@@ -1,4 +1,5 @@
 import flopy.modflow as mf
+import numpy as np
 
 
 class LakAdapter:
@@ -24,12 +25,22 @@ class LakAdapter:
     def merge(self):
         default = self.default()
         for key in self._data:
-            if key == 'sill_data' or 'flux_data':
-                default[key] = self.to_dict(self._data[key])
+            if key == 'flux_data' or key == 'sill_data':
+                if self._data[key] is not None:
+                    default[key] = dict(enumerate(self._data[key]))
                 continue
 
             if key == 'stage_range' and self._data[key] is not None:
-                default[key] = map(tuple, self._data[key])
+                default[key] = list(map(tuple, self._data[key]))
+                continue
+
+            if key == 'lakarr' or key == 'bdlknc':
+                if self._data[key] is not None:
+                    default[key] = np.array(self._data[key])
+                continue
+
+            if key == 'stages' and self._data[key] is not None:
+                default[key] = np.array(self._data[key])
                 continue
 
             default[key] = self._data[key]
@@ -62,7 +73,7 @@ class LakAdapter:
             "nssitr": 0,
             "sscncr": 0.0,
             "surfdep": 0.0,
-            "stages": 1.0,
+            "stages": [1.0],
             "stage_range": None,
             "tab_files": None,
             "tab_units": None,

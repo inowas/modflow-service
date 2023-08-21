@@ -1,5 +1,5 @@
 import os
-from flopy.utils.mflistfile import MfListBudget
+from flopy.utils.mflistfile import MfListBudget, SwtListBudget
 
 
 class ReadBudget:
@@ -11,10 +11,21 @@ class ReadBudget:
                 self._filename = os.path.join(workspace, file)
         pass
 
+    def get_list_budget(self):
+        try:
+            if self._filename.endswith("swt.list"):
+                list_budget = SwtListBudget(self._filename)
+                return list_budget
+
+            list_budget = MfListBudget(self._filename)
+            return list_budget
+        except:
+            return None
+
     def read_times(self):
         try:
-            mf_list = MfListBudget(self._filename)
-            times = mf_list.get_times()
+            list_budget = self.get_list_budget()
+            times = list_budget.get_times()
             if times is not None:
                 return times
 
@@ -31,8 +42,8 @@ class ReadBudget:
 
     def read_kstpkper(self):
         try:
-            mf_list = MfListBudget(self._filename)
-            kstpkper = mf_list.get_kstpkper()
+            list_budget = self.get_list_budget()
+            kstpkper = list_budget.get_kstpkper()
             if kstpkper is not None:
                 return kstpkper
             return []
@@ -41,8 +52,8 @@ class ReadBudget:
 
     def read_budget_by_totim(self, totim=0, incremental=False):
         try:
-            mf_list = MfListBudget(self._filename)
-            budget = mf_list.get_data(totim=totim, incremental=incremental)
+            list_budget = self.get_list_budget()
+            budget = list_budget.get_data(totim=totim, incremental=incremental)
             values = {}
             for x in budget:
                 param = str(x[2].decode('UTF-8'))
@@ -53,8 +64,8 @@ class ReadBudget:
 
     def read_budget_by_idx(self, idx=0, incremental=False):
         try:
-            mf_list = MfListBudget(self._filename)
-            budget = mf_list.get_data(idx=idx, incremental=incremental)
+            list_budget = self.get_list_budget()
+            budget = list_budget.get_data(idx=idx, incremental=incremental)
             values = {}
             for x in budget:
                 param = str(x[2].decode('UTF-8'))
@@ -65,8 +76,8 @@ class ReadBudget:
 
     def read_budget_by_kstpkper(self, kstpkper=(0, 0), incremental=False):
         try:
-            mf_list = MfListBudget(self._filename)
-            budget = mf_list.get_data(kstpkper=kstpkper, incremental=incremental)
+            list_budget = self.get_list_budget()
+            budget = list_budget.get_data(kstpkper=kstpkper, incremental=incremental)
             values = {}
             for x in budget:
                 param = str(x[2].decode('UTF-8'))

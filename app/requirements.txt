@@ -2,7 +2,7 @@ attrs>=20.2.0
 Click>=7.1.2
 Flask>=1.1.2
 Flask-Cors>=3.0.9
-Flopy==3.3.6
+Flopy==3.4.1
 geojson>=2.5.0
 itsdangerous>=1.1.0
 Jinja2>=2.11.2

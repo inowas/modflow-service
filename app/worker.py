@@ -11,6 +11,7 @@ from utils.FlopyAdapter.Calculation import InowasFlopyCalculationAdapter
 DB_LOCATION = '/db/modflow.db'
 MODFLOW_FOLDER = '/modflow'
 
+
 def db_connect():
     return sql.connect(DB_LOCATION)
 
@@ -103,6 +104,7 @@ def calculate(idx, calculation_id, logger):
     cur.execute('UPDATE calculations SET state = ?, updated_at = ? WHERE id = ?', (100, datetime.now(), idx))
     conn.commit()
 
+    flopy = None
     try:
         flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
         state = 200 if flopy.success else 400
@@ -115,14 +117,18 @@ def calculate(idx, calculation_id, logger):
         write_state(target_directory, state)
     except:
         write_state(target_directory, 500)
+        cur.execute('UPDATE calculations SET state = ?, message = ?, updated_at = ? WHERE id = ?',
+                    (500, flopy.short_response_message(), datetime.now(), idx))
         logger.error(traceback.format_exc())
         pass
     finally:
-        try:
-            flopy = InowasFlopyCalculationAdapter(version, data, calculation_id)
-            model_check(target_directory, flopy)
-        except:
-            pass
+        conn.close()
+        if flopy not in [None, False]:
+            try:
+                model_check(target_directory, flopy)
+            except:
+                logger.error(traceback.format_exc())
+                pass
 
 
 def set_logger(target_directory, calculation_id):

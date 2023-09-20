@@ -759,15 +759,20 @@ def get_packages_json(calculation_id: str, package: str, prop: str = None):
 @app.route('/<calculation_id>/elevations/<type>/layers/<layer_idx>', methods=['GET'])
 @cross_origin()
 def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
-    output = request.args.get('output', 'image')
     available_types = ['top', 'botm']
-    cmap = request.args.get('cmap', 'terrain')
-    vmin = request.args.get('vmin', 0)
-    vmax = request.args.get('vmax', 2000)
-    layer_idx = int(layer_idx)
+    available_outputs = ['json', 'image']
+    output = request.args.get('output', 'json')
 
     if type not in available_types:
         abort(404, f'Type: {type} not available. Available types are: {", ".join(map(str, available_types))}')
+
+    if output not in available_outputs:
+        abort(404, f'Output: {output} not available. Available outputs are: {", ".join(map(str, available_outputs))}')
+
+    cmap = request.args.get('cmap', 'terrain')
+    layer_idx = int(layer_idx)
+    vmin = request.args.get('vmin', 0)
+    vmax = request.args.get('vmax', 2000)
 
     try:
         data = get_package_data(calculation_id, 'dis', 'top')
@@ -778,13 +783,13 @@ def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
                 abort(404, f'Layer: {layer_idx} not available. Available layers are: {", ".join(map(str, data))}')
             data = data[layer_idx]
 
-        if output == 'json':
-            return json.dumps(data)
-
         height = get_package_data(calculation_id, 'dis', 'nrow')
         width = get_package_data(calculation_id, 'dis', 'ncol')
         if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
             data = np.ones((int(height), int(width))) * data
+
+        if output == 'json':
+            return json.dumps(data)
 
         bytes_image = io.BytesIO()
         plt.imsave(bytes_image, data, format='png', cmap=cmap, vmin=vmin, vmax=vmax)

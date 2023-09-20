@@ -786,7 +786,7 @@ def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
         height = get_package_data(calculation_id, 'dis', 'nrow')
         width = get_package_data(calculation_id, 'dis', 'ncol')
         if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
-            data = np.ones((int(height), int(width))) * data
+            data = (np.ones((int(height), int(width))) * data).tolist()
 
         if output == 'json':
             return json.dumps(data)

@@ -748,36 +748,50 @@ def get_package_data(calculation_id: str, package: str, prop: str = None, idx: i
 
 
 @app.route('/<calculation_id>/packages/<package>', methods=['GET'])
+@app.route('/<calculation_id>/packages/<package>/props/<prop>', methods=['GET'])
 @cross_origin()
-def get_packages(calculation_id: str, package: str):
-    prop = request.args.get('prop')
-    idx = request.args.get('idx')
+def get_packages_json(calculation_id: str, package: str, prop: str = None):
+    data = get_package_data(calculation_id, package, prop)
+    return json.dumps(data)
 
-    output = request.args.get('output', 'json')
-    img_width = request.args.get('img_width', 200)
-    img_height = request.args.get('img_height', 100)
+
+@app.route('/<calculation_id>/elevations/<type>', methods=['GET'])
+@app.route('/<calculation_id>/elevations/<type>/layers/<layer_idx>', methods=['GET'])
+@cross_origin()
+def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
+    output = request.args.get('output', 'image')
+    available_types = ['top', 'botm']
     cmap = request.args.get('cmap', 'terrain')
     vmin = request.args.get('vmin', 0)
     vmax = request.args.get('vmax', 2000)
+    layer_idx = int(layer_idx)
 
-    if not prop:
-        output = 'json'
+    if type not in available_types:
+        abort(404, f'Type: {type} not available. Available types are: {", ".join(map(str, available_types))}')
 
-    data = get_package_data(calculation_id, package, prop, idx)
+    try:
+        data = get_package_data(calculation_id, 'dis', 'top')
+        if type == 'botm':
+            data = get_package_data(calculation_id, 'dis', 'botm')
 
-    if output == 'json':
-        return json.dumps(data)
+            if not data or not data[layer_idx]:
+                abort(404, f'Layer: {layer_idx} not available. Available layers are: {", ".join(map(str, data))}')
+            data = data[layer_idx]
 
-    if output == 'image':
-        try:
-            bytes_image = io.BytesIO()
-            if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
-                data = np.ones((int(img_height), int(img_width))) * data
-            plt.imsave(bytes_image, data, format='png', cmap=cmap, vmin=vmin, vmax=vmax)
-            bytes_image.seek(0)
-            return send_file(bytes_image, mimetype='image/png')
-        except Exception as e:
-            abort(500, str(e))
+        if output == 'json':
+            return json.dumps(data)
+
+        height = get_package_data(calculation_id, 'dis', 'nrow')
+        width = get_package_data(calculation_id, 'dis', 'ncol')
+        if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
+            data = np.ones((int(height), int(width))) * data
+
+        bytes_image = io.BytesIO()
+        plt.imsave(bytes_image, data, format='png', cmap=cmap, vmin=vmin, vmax=vmax)
+        bytes_image.seek(0)
+        return send_file(bytes_image, mimetype='image/png')
+    except Exception as e:
+        abort(500, e)
 
 
 # noinspection SqlResolve

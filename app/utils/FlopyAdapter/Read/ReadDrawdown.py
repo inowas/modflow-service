@@ -76,6 +76,27 @@ class ReadDrawdown:
         except:
             return []
 
+    def read_min_max_by_idx(self, idx=0):
+        try:
+            heads = bf.HeadFile(filename=self._filename, text='drawdown', precision='single')
+            data = heads.get_data(idx=idx).tolist()
+            min_value = data[0][0][0]
+            max_value = data[0][0][0]
+
+            for i in range(len(data)):
+                for j in range(len(data[i])):
+                    for k in range(len(data[i][j])):
+                        if data[i][j][k] < -999:
+                            data[i][j][k] = None
+                        elif data[i][j][k] > max_value:
+                            max_value = data[i][j][k]
+                        elif data[i][j][k] < min_value:
+                            min_value = data[i][j][k]
+
+            return [min_value, max_value]
+        except:
+            return [0, 999]
+
     def read_layer_by_kstpkper(self, kstpkper=(0, 0), layer=0):
         try:
             heads = bf.HeadFile(filename=self._filename, text='drawdown', precision='single')

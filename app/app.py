@@ -391,7 +391,7 @@ def calculation_details(calculation_id):
     data = read_json(modflow_file).get('data').get('mf')
     path = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
 
-    if request.content_type and 'application/json' in request.content_type:
+    if request.headers.get('Accept') == 'application/json':
         response = make_response(get_calculation_details_json(calculation_id, data, path))
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -421,27 +421,29 @@ def get_file(calculation_id, file_name):
         })
 
 
-@app.route('/<calculation_id>/results/types/<t>/layers/<layer>/totims/<totim>', methods=['GET'])
+@app.route('/<calculation_id>/results/types/<type>/layers/<layer>/totims/<totim>', methods=['GET'])
 @cross_origin()
-def get_results_head_drawdown_by_totim(calculation_id, t, layer, totim):
+def get_results_head_drawdown_by_totim(calculation_id, type, layer, totim):
+    permitted_types = ['head', 'drawdown']
+    if type not in permitted_types:
+        abort(404, 'Type: {} not available. Available types are: {}'.format(type, ", ".join(permitted_types)))
+
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
     if not os.path.exists(modflow_file):
         abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
 
-    permitted_types = ['head', 'drawdown']
+    permitted_outputs = ['image', 'json']
+    output = request.args.get('output', 'json')
+
+    if output not in permitted_outputs:
+        abort(404, 'Output: {} not available. Available outputs are: {}'.format(output, ", ".join(permitted_outputs)))
 
     totim = float(totim)
     layer = int(layer)
 
-    if t not in permitted_types:
-        abort(404,
-              'Type: {} not in the list of permitted types. \
-              Permitted types are: {}.'.format(t, ", ".join(permitted_types))
-              )
-
-    if t == 'head':
+    if type == 'head':
         heads = ReadHead(target_folder)
         times = heads.read_times()
 
@@ -454,7 +456,7 @@ def get_results_head_drawdown_by_totim(calculation_id, t, layer, totim):
 
         return json.dumps(heads.read_layer_by_totim(totim, layer))
 
-    if t == 'drawdown':
+    if type == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
         times = drawdown.read_times()
         if totim not in times:
@@ -467,27 +469,46 @@ def get_results_head_drawdown_by_totim(calculation_id, t, layer, totim):
         return json.dumps(drawdown.read_layer_by_totim(totim, layer))
 
 
-@app.route('/<calculation_id>/results/types/<t>/layers/<layer>/idx/<idx>', methods=['GET'])
+def create_png_image(data: [], vmin=None, vmax=None, cmap='jet_r'):
+    bytes_image = io.BytesIO()
+
+    data = np.array(data, dtype=np.float32)
+
+    if vmin is None:
+        vmin = np.nanmin(data) - np.nanstd(data)
+
+    if vmax is None:
+        vmax = np.nanmax(data) + np.nanstd(data)
+
+    plt.imsave(bytes_image, data, format='png', cmap=cmap, vmin=vmin, vmax=vmax)
+    bytes_image.seek(0)
+    return bytes_image
+
+
+@app.route('/<calculation_id>/results/types/<type>/layers/<layer>/idx/<idx>', methods=['GET'])
 @cross_origin()
-def get_results_head_drawdown_by_idx(calculation_id, t, layer, idx):
+def get_results_head_drawdown_by_idx(calculation_id, type, layer, idx):
+    permitted_types = ['head', 'drawdown']
+
+    if type not in permitted_types:
+        abort(404, 'Type: {} not available. Available types are: {}'.format(type, ", ".join(permitted_types)))
+
+    permitted_outputs = ['image', 'json']
+    output = request.args.get('output', 'json')
+
+    if output not in permitted_outputs:
+        abort(404, 'Output: {} not available. Available outputs are: {}'.format(output, ", ".join(permitted_outputs)))
+
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
     if not os.path.exists(modflow_file):
         abort(404, 'Calculation with id: {} not found.'.format(calculation_id))
 
-    permitted_types = ['head', 'drawdown']
-
     idx = int(idx)
     layer = int(layer)
 
-    if t not in permitted_types:
-        abort(404,
-              'Type: {} not in the list of permitted types. \
-              Permitted types are: {}.'.format(t, ", ".join(permitted_types))
-              )
-
-    if t == 'head':
+    if type == 'head':
         heads = ReadHead(target_folder)
         times = heads.read_times()
 
@@ -499,9 +520,16 @@ def get_results_head_drawdown_by_idx(calculation_id, t, layer, idx):
         if layer >= nlay:
             abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-        return json.dumps(heads.read_layer_by_idx(idx, layer))
+        data = heads.read_layer_by_idx(idx, layer)
+        [min, max] = heads.read_min_max_by_idx(idx)
 
-    if t == 'drawdown':
+        if output == 'image':
+            return send_file(create_png_image(data, cmap='jet_r', vmin=min, vmax=max), mimetype='image/png', etag=True,
+                             max_age=3600)
+
+        return json.dumps(data)
+
+    if type == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
         times = drawdown.read_times()
         if idx >= len(times):
@@ -511,12 +539,19 @@ def get_results_head_drawdown_by_idx(calculation_id, t, layer, idx):
         if layer >= nlay:
             abort(404, 'Layer must be less then the overall number of layers ({}).'.format(nlay))
 
-        return json.dumps(drawdown.read_layer_by_idx(idx, layer))
+        data = drawdown.read_layer_by_idx(idx, layer)
+        [min, max] = drawdown.read_min_max_by_idx(idx)
+
+        if output == 'image':
+            return send_file(create_png_image(data, cmap='jet_r', vmin=min, vmax=max), mimetype='image/png', etag=True,
+                             max_age=3600)
+
+        return json.dumps(data)
 
 
-@app.route('/<calculation_id>/timeseries/types/<t>/layers/<layer>/rows/<row>/columns/<column>', methods=['GET'])
+@app.route('/<calculation_id>/timeseries/types/<type>/layers/<layer>/rows/<row>/columns/<column>', methods=['GET'])
 @cross_origin()
-def get_results_time_series(calculation_id, t, layer, row, column):
+def get_results_time_series(calculation_id, type, layer, row, column):
     target_folder = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     modflow_file = os.path.join(target_folder, 'configuration.json')
 
@@ -529,17 +564,17 @@ def get_results_time_series(calculation_id, t, layer, row, column):
     row = int(row)
     col = int(column)
 
-    if t not in permitted_types:
+    if type not in permitted_types:
         abort(404,
               'Type: {} not in the list of permitted types. \
-              Permitted types are: {}.'.format(t, ", ".join(permitted_types))
+              Permitted types are: {}.'.format(type, ", ".join(permitted_types))
               )
 
-    if t == 'head':
+    if type == 'head':
         heads = ReadHead(target_folder)
         return json.dumps(heads.read_ts(layer, row, col))
 
-    if t == 'drawdown':
+    if type == 'drawdown':
         drawdown = ReadDrawdown(target_folder)
         return json.dumps(drawdown.read_ts(layer, row, col))
 
@@ -759,20 +794,20 @@ def get_packages_json(calculation_id: str, package: str, prop: str = None):
 @app.route('/<calculation_id>/elevations/<type>/layers/<layer_idx>', methods=['GET'])
 @cross_origin()
 def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
-    available_types = ['top', 'botm']
-    available_outputs = ['json', 'image']
+    permitted_types = ['top', 'botm']
+    permitted_outputs = ['json', 'image']
     output = request.args.get('output', 'json')
 
-    if type not in available_types:
-        abort(404, f'Type: {type} not available. Available types are: {", ".join(map(str, available_types))}')
+    if type not in permitted_types:
+        abort(404, f'Type: {type} not available. Available types are: {", ".join(map(str, permitted_types))}')
 
-    if output not in available_outputs:
-        abort(404, f'Output: {output} not available. Available outputs are: {", ".join(map(str, available_outputs))}')
+    if output not in permitted_outputs:
+        abort(404, f'Output: {output} not available. Available outputs are: {", ".join(map(str, permitted_outputs))}')
 
-    cmap = request.args.get('cmap', 'terrain')
+    cmap = request.args.get('cmap', 'gist_earth')
     layer_idx = int(layer_idx)
-    vmin = request.args.get('vmin', 0)
-    vmax = request.args.get('vmax', 2000)
+    vmin = request.args.get('vmin', None)
+    vmax = request.args.get('vmax', None)
 
     try:
         data = get_package_data(calculation_id, 'dis', 'top')
@@ -785,16 +820,19 @@ def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
 
         height = get_package_data(calculation_id, 'dis', 'nrow')
         width = get_package_data(calculation_id, 'dis', 'ncol')
+
         if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
             data = (np.ones((int(height), int(width))) * data).tolist()
 
-        if output == 'json':
-            return json.dumps(data)
+        if output == 'image':
+            return send_file(
+                create_png_image(data, vmin=vmin, vmax=vmax, cmap=cmap),
+                mimetype='image/png',
+                etag=True,
+                max_age=3600
+            )
 
-        bytes_image = io.BytesIO()
-        plt.imsave(bytes_image, data, format='png', cmap=cmap, vmin=vmin, vmax=vmax)
-        bytes_image.seek(0)
-        return send_file(bytes_image, mimetype='image/png')
+        return json.dumps(data)
     except Exception as e:
         abort(500, e)
 

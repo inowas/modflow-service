@@ -40927,7 +40927,7 @@
         "xul": 26.77925326738182,
         "yul": 37.78722736288226,
         "rotation": 0,
-        "proj4_str": "EPSG:4326",
+        "proj4_str": "EPSG:28992",
         "start_datetime": "2000-01-01"
       },
       "lpf": {

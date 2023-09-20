@@ -3138,7 +3138,7 @@
         "xul": -63.687336,
         "yul": -31.313615,
         "rotation": 0,
-        "proj4_str": "EPSG:4326",
+        "proj4_str": "EPSG:28992",
         "start_datetime": "2015-01-01"
       },
       "bas": {

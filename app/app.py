@@ -1,4 +1,6 @@
 from datetime import datetime
+import numpy as np
+import matplotlib.pyplot as plt
 
 from utils.FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
 from flask import abort, Flask, request, redirect, render_template, Response, send_file, make_response, jsonify
@@ -715,6 +717,86 @@ def cleanup_calculation(calculation_id):
         os.remove(file)
 
     return json.dumps(deleted_list)
+
+
+def get_package_data(calculation_id: str, package: str, prop: str = None, idx: int = None):
+    target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    filename = os.path.join(target_directory, 'configuration.json')
+
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f'Calculation with id: {calculation_id} not found.')
+
+    content = read_json(filename)
+    data: dict = content.get('data').get('mf') or content.get('data').get('mt') or content.get('data').get('swt')
+
+    if not data:
+        raise FileNotFoundError(f'Calculation data with id: {calculation_id} not found.')
+
+    if not prop:
+        return data.get(package)
+
+    if data.get(package) and data.get(package).get(prop):
+        prop_data = data.get(package).get(prop)
+        if isinstance(prop_data, __builtins__.list):
+            if idx is None:
+                return prop_data
+            if prop_data[int(idx)]:
+                return prop_data[int(idx)]
+        return prop_data
+
+    raise FileNotFoundError(f'Data with package: {package} and prop: {prop} not found.')
+
+
+@app.route('/<calculation_id>/packages/<package>', methods=['GET'])
+@app.route('/<calculation_id>/packages/<package>/props/<prop>', methods=['GET'])
+@cross_origin()
+def get_packages_json(calculation_id: str, package: str, prop: str = None):
+    data = get_package_data(calculation_id, package, prop)
+    return json.dumps(data)
+
+
+@app.route('/<calculation_id>/elevations/<type>', methods=['GET'])
+@app.route('/<calculation_id>/elevations/<type>/layers/<layer_idx>', methods=['GET'])
+@cross_origin()
+def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
+    available_types = ['top', 'botm']
+    available_outputs = ['json', 'image']
+    output = request.args.get('output', 'json')
+
+    if type not in available_types:
+        abort(404, f'Type: {type} not available. Available types are: {", ".join(map(str, available_types))}')
+
+    if output not in available_outputs:
+        abort(404, f'Output: {output} not available. Available outputs are: {", ".join(map(str, available_outputs))}')
+
+    cmap = request.args.get('cmap', 'terrain')
+    layer_idx = int(layer_idx)
+    vmin = request.args.get('vmin', 0)
+    vmax = request.args.get('vmax', 2000)
+
+    try:
+        data = get_package_data(calculation_id, 'dis', 'top')
+        if type == 'botm':
+            data = get_package_data(calculation_id, 'dis', 'botm')
+
+            if not data or not data[layer_idx]:
+                abort(404, f'Layer: {layer_idx} not available. Available layers are: {", ".join(map(str, data))}')
+            data = data[layer_idx]
+
+        height = get_package_data(calculation_id, 'dis', 'nrow')
+        width = get_package_data(calculation_id, 'dis', 'ncol')
+        if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
+            data = (np.ones((int(height), int(width))) * data).tolist()
+
+        if output == 'json':
+            return json.dumps(data)
+
+        bytes_image = io.BytesIO()
+        plt.imsave(bytes_image, data, format='png', cmap=cmap, vmin=vmin, vmax=vmax)
+        bytes_image.seek(0)
+        return send_file(bytes_image, mimetype='image/png')
+    except Exception as e:
+        abort(500, e)
 
 
 # noinspection SqlResolve

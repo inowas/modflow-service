@@ -36,7 +36,7 @@ class InowasModflowReadAdapterTestCase(unittest.TestCase):
         from flopy.discretization import StructuredGrid
         mg = instance.modelgrid
         self.assertIsInstance(mg, StructuredGrid)
-        self.assertEqual(mg.epsg, 32725)
+        self.assertEqual(mg.epsg, '32725')
         self.assertEqual(round(mg.xoffset), 279972)
         self.assertEqual(round(mg.yoffset), 9099725)
         self.assertEqual(mg.angrot, -15.5)

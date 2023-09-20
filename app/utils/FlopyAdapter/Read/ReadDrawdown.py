@@ -1,5 +1,6 @@
 import os
 import flopy.utils.binaryfile as bf
+import numpy as np
 
 
 class ReadDrawdown:
@@ -80,8 +81,8 @@ class ReadDrawdown:
         try:
             heads = bf.HeadFile(filename=self._filename, text='drawdown', precision='single')
             data = heads.get_data(idx=idx).tolist()
-            min_value = data[0][0][0]
-            max_value = data[0][0][0]
+            min_value = np.max(data)
+            max_value = np.max(data)
 
             for i in range(len(data)):
                 for j in range(len(data[i])):

@@ -717,6 +717,33 @@ def cleanup_calculation(calculation_id):
     return json.dumps(deleted_list)
 
 
+@app.route('/<calculation_id>/packages/<type>', methods=['GET'])
+@cross_origin()
+def get_packages(calculation_id, type):
+    target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
+    filename = os.path.join(target_directory, 'configuration.json')
+
+    if not os.path.exists(filename):
+        abort(404, f'Calculation with id: {calculation_id} not found.')
+
+    content = read_json(filename)
+    data: dict = content.get('data')
+
+    mf = data.get('mf')
+    if mf and mf.get(type):
+        return json.dumps(mf.get(type))
+
+    mt = data.get('mt')
+    if mt and mt.get(type):
+        return json.dumps(mt.get(type))
+
+    swt = data.get('swt')
+    if swt and swt.get(type):
+        return json.dumps(swt.get(type))
+
+    abort(404, f'Package with type: {type} not found.')
+
+
 # noinspection SqlResolve
 @app.route('/list')
 def list():

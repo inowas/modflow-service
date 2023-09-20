@@ -1,4 +1,6 @@
 from datetime import datetime
+import numpy as np
+import matplotlib.pyplot as plt
 
 from utils.FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
 from flask import abort, Flask, request, redirect, render_template, Response, send_file, make_response, jsonify
@@ -717,31 +719,65 @@ def cleanup_calculation(calculation_id):
     return json.dumps(deleted_list)
 
 
-@app.route('/<calculation_id>/packages/<type>', methods=['GET'])
-@cross_origin()
-def get_packages(calculation_id, type):
+def get_package_data(calculation_id: str, package: str, prop: str = None, idx: int = None):
     target_directory = os.path.join(app.config['MODFLOW_FOLDER'], calculation_id)
     filename = os.path.join(target_directory, 'configuration.json')
 
     if not os.path.exists(filename):
-        abort(404, f'Calculation with id: {calculation_id} not found.')
+        raise FileNotFoundError(f'Calculation with id: {calculation_id} not found.')
 
     content = read_json(filename)
-    data: dict = content.get('data')
+    data: dict = content.get('data').get('mf') or content.get('data').get('mt') or content.get('data').get('swt')
 
-    mf = data.get('mf')
-    if mf and mf.get(type):
-        return json.dumps(mf.get(type))
+    if not data:
+        raise FileNotFoundError(f'Calculation data with id: {calculation_id} not found.')
 
-    mt = data.get('mt')
-    if mt and mt.get(type):
-        return json.dumps(mt.get(type))
+    if not prop:
+        return data.get(package)
 
-    swt = data.get('swt')
-    if swt and swt.get(type):
-        return json.dumps(swt.get(type))
+    if data.get(package) and data.get(package).get(prop):
+        prop_data = data.get(package).get(prop)
+        if isinstance(prop_data, __builtins__.list):
+            if idx is None:
+                return prop_data
+            if prop_data[int(idx)]:
+                return prop_data[int(idx)]
+        return prop_data
 
-    abort(404, f'Package with type: {type} not found.')
+    raise FileNotFoundError(f'Data with package: {package} and prop: {prop} not found.')
+
+
+@app.route('/<calculation_id>/packages/<package>', methods=['GET'])
+@cross_origin()
+def get_packages(calculation_id: str, package: str):
+    prop = request.args.get('prop')
+    idx = request.args.get('idx')
+
+    output = request.args.get('output', 'json')
+    img_width = request.args.get('img_width', 200)
+    img_height = request.args.get('img_height', 100)
+    cmap = request.args.get('cmap', 'terrain')
+    vmin = request.args.get('vmin', 0)
+    vmax = request.args.get('vmax', 2000)
+
+    if not prop:
+        output = 'json'
+
+    data = get_package_data(calculation_id, package, prop, idx)
+
+    if output == 'json':
+        return json.dumps(data)
+
+    if output == 'image':
+        try:
+            bytes_image = io.BytesIO()
+            if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
+                data = np.ones((int(img_height), int(img_width))) * data
+            plt.imsave(bytes_image, data, format='png', cmap=cmap, vmin=vmin, vmax=vmax)
+            bytes_image.seek(0)
+            return send_file(bytes_image, mimetype='image/png')
+        except Exception as e:
+            abort(500, str(e))
 
 
 # noinspection SqlResolve

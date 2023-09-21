@@ -396,6 +396,11 @@ def calculation_details(calculation_id):
         response.headers['Content-Type'] = 'application/json'
         return response
 
+    if request.content_type and 'application/json' in request.content_type:
+        response = make_response(get_calculation_details_json(calculation_id, data, path))
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
     return render_template('details.html', id=str(calculation_id), data=data, path=path)
 
 

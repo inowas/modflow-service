@@ -490,15 +490,37 @@ def create_png_image(data: [], vmin=None, vmax=None, cmap='jet_r'):
     return bytes_image
 
 
+def create_png_colorbar(data: [], vmin=None, vmax=None, cmap='jet_r'):
+    bytes_image = io.BytesIO()
+
+    data = np.array(data, dtype=np.float32)
+    if vmin is None:
+        vmin = np.nanmin(data) - np.nanstd(data)
+
+    if vmax is None:
+        vmax = np.nanmax(data) + np.nanstd(data)
+
+    fig, (ax) = plt.subplots(nrows=1, ncols=1)
+    fig.patch.set_facecolor('None')
+    fig.patch.set_alpha(0.0)
+    im = ax.imshow(data, cmap=cmap, vmin=vmin, vmax=vmax)
+    plt.colorbar(im, ax=ax)
+    ax.remove()
+    plt.savefig(bytes_image, format='png', bbox_inches='tight')
+    bytes_image.seek(0)
+    return bytes_image
+
+
+@app.route('/<calculation_id>/results/types/<type>/idx/<idx>', methods=['GET'])
 @app.route('/<calculation_id>/results/types/<type>/layers/<layer>/idx/<idx>', methods=['GET'])
 @cross_origin()
-def get_results_head_drawdown_by_idx(calculation_id, type, layer, idx):
+def get_results_head_drawdown_by_idx(calculation_id, type='head', layer=0, idx=0):
     permitted_types = ['head', 'drawdown']
 
     if type not in permitted_types:
         abort(404, 'Type: {} not available. Available types are: {}'.format(type, ", ".join(permitted_types)))
 
-    permitted_outputs = ['image', 'json']
+    permitted_outputs = ['image', 'json', 'colorbar']
     output = request.args.get('output', 'json')
 
     if output not in permitted_outputs:
@@ -527,9 +549,16 @@ def get_results_head_drawdown_by_idx(calculation_id, type, layer, idx):
 
         data = heads.read_layer_by_idx(idx, layer)
         [min, max] = heads.read_min_max_by_idx(idx)
+        cmap = 'jet_r'
 
         if output == 'image':
-            return send_file(create_png_image(data, cmap='jet_r', vmin=min, vmax=max), mimetype='image/png', etag=True,
+            return send_file(create_png_image(data, cmap=cmap, vmin=min, vmax=max), mimetype='image/png',
+                             etag=True,
+                             max_age=3600)
+
+        if output == 'colorbar':
+            return send_file(create_png_colorbar(data, cmap=cmap, vmin=min, vmax=max), mimetype='image/png',
+                             etag=True,
                              max_age=3600)
 
         return json.dumps(data)
@@ -546,9 +575,16 @@ def get_results_head_drawdown_by_idx(calculation_id, type, layer, idx):
 
         data = drawdown.read_layer_by_idx(idx, layer)
         [min, max] = drawdown.read_min_max_by_idx(idx)
+        cmap = 'jet_r'
 
         if output == 'image':
-            return send_file(create_png_image(data, cmap='jet_r', vmin=min, vmax=max), mimetype='image/png', etag=True,
+            return send_file(create_png_image(data, cmap=cmap, vmin=min, vmax=max), mimetype='image/png',
+                             etag=True,
+                             max_age=3600)
+
+        if output == 'colorbar':
+            return send_file(create_png_colorbar(data, cmap=cmap, vmin=min, vmax=max), mimetype='image/png',
+                             etag=True,
                              max_age=3600)
 
         return json.dumps(data)

@@ -1,6 +1,7 @@
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy as scipy
 
 from utils.FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
 from flask import abort, Flask, request, redirect, render_template, Response, send_file, make_response, jsonify
@@ -861,6 +862,13 @@ def get_elevation_image(calculation_id: str, type: str, layer_idx: str = 0):
 
         height = get_package_data(calculation_id, 'dis', 'nrow')
         width = get_package_data(calculation_id, 'dis', 'ncol')
+
+        vmin = float(vmin) if vmin else np.nanmin(data)
+        vmax = float(vmax) if vmax else np.nanmax(data)
+
+        if vmin == vmax:
+            vmin = vmin - 1
+            vmax = vmax + 1
 
         if isinstance(data, __builtins__.float) or isinstance(data, __builtins__.int):
             data = (np.ones((int(height), int(width))) * data).tolist()

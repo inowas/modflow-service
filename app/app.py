@@ -1,7 +1,6 @@
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as scipy
 
 from utils.FlopyAdapter.Read import ReadBudget, ReadHead, ReadConcentration, ReadDrawdown
 from flask import abort, Flask, request, redirect, render_template, Response, send_file, make_response, jsonify
@@ -919,17 +918,16 @@ def after_request(response):
     return response
 
 
+app.secret_key = '2349978342978342907889709154089438989043049835890'
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['DEBUG'] = False
+
+db_init()
+fs_init()
+
 if __name__ == '__main__':
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
-
-    app.secret_key = '2349978342978342907889709154089438989043049835890'
-    app.config['SESSION_TYPE'] = 'filesystem'
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-    app.config['MODFLOW_FOLDER'] = MODFLOW_FOLDER
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     app.config['DEBUG'] = True
-
-    db_init()
-    fs_init()
     app.run(debug=app.config['DEBUG'], host='0.0.0.0')

@@ -8,7 +8,7 @@ services:
       - "traefik.docker.network=web"
       - "traefik.enable=true"
       - "traefik.wiki.frontend.rule=Host: ${HOST_URL}"
-      - "traefik.wiki.port=5000"
+      - "traefik.wiki.port=8000"
       - "traefik.wiki.protocol=http"
     networks:
       - web
@@ -16,7 +16,7 @@ services:
     volumes:
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
-    command: [ "python", "-u", "app.py" ]
+    command: [ "gunicorn", "--bind", ":8000", "--workers", "4", "wsgi:app"]
 
   worker:
     image: inowas/modflow-service:latest

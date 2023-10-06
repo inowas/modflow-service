@@ -12,6 +12,9 @@ variables:
   # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
+  DEV_SERVER_FOLDER: "/srv/docker/dev.modflow.inowas.com"
+  PROD_SERVER_FOLDER: "/srv/docker/modflow.inowas.com"
+
 
 test:
   image: inowas/modflow-build:latest
@@ -51,7 +54,7 @@ deploy:dev:
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - scp docker-compose.dev.yml $DEV_SERVER_SSH_CREDENTIALS:$DEV_SERVER_PATH/docker-compose.dev.yml
-    - ssh -t $DEV_SERVER_SSH_CREDENTIALS "cd /srv/docker/dev.modflow.inowas.com &&
+    - ssh -t $DEV_SERVER_SSH_CREDENTIALS "cd $DEV_SERVER_FOLDER &&
       docker compose -f docker-compose.dev.yml down &&
       docker compose -f docker-compose.dev.yml pull &&
       docker compose -f docker-compose.dev.yml up -d --force-recreate &&
@@ -102,7 +105,7 @@ deploy:production:
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - scp docker-compose.yml $PROD_SERVER_SSH_CREDENTIALS:$PROD_SERVER_PATH/docker-compose.yml
-    - ssh -t $PROD_SERVER_SSH_CREDENTIALS "cd /srv/docker/modflow.inowas.com &&
+    - ssh -t $PROD_SERVER_SSH_CREDENTIALS "cd $PROD_SERVER_FOLDER &&
       docker compose down &&
       docker compose pull &&
       docker compose up -d --force-recreate &&

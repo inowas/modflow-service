@@ -12,9 +12,6 @@ variables:
   # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
-  DEV_SERVER_FOLDER: "/srv/docker/dev.modflow.inowas.com"
-  PROD_SERVER_FOLDER: "/srv/docker/modflow.inowas.com"
-
 
 test:
   image: inowas/modflow-build:latest

@@ -50,13 +50,13 @@ deploy:dev:
     - echo "$SSH_PRIVATE_KEY" | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh -t root@dev.modflow.inowas.com 'cd /srv/docker/dev.modflow.inowas.com &&
+    - scp docker-compose.dev.yml $DEV_SERVER_SSH_CREDENTIALS:$DEV_SERVER_PATH/docker-compose.dev.yml
+    - ssh -t $DEV_SERVER_SSH_CREDENTIALS "cd /srv/docker/dev.modflow.inowas.com &&
       docker compose -f docker-compose.dev.yml down &&
       docker compose -f docker-compose.dev.yml pull &&
       docker compose -f docker-compose.dev.yml up -d --force-recreate &&
       docker compose -f docker-compose.dev.yml ps &&
-      docker system prune -f'
-
+      docker system prune -f"
   only:
     - dev
 
@@ -101,12 +101,13 @@ deploy:production:
     - echo "$SSH_PRIVATE_KEY" | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh -t root@modflow.inowas.com 'cd /srv/docker/modflow.inowas.com &&
+    - scp docker-compose.yml $PROD_SERVER_SSH_CREDENTIALS:$PROD_SERVER_PATH/docker-compose.yml
+    - ssh -t $PROD_SERVER_SSH_CREDENTIALS "cd /srv/docker/modflow.inowas.com &&
       docker compose down &&
       docker compose pull &&
       docker compose up -d --force-recreate &&
       docker compose ps &&
-      docker system prune -f'
-      
+      docker system prune -f"
+
   only:
     - master

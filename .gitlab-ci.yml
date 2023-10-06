@@ -51,10 +51,10 @@ deploy:dev:
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh -t root@dev.modflow.inowas.com 'cd /srv/docker/dev.modflow.inowas.com &&
-      docker-compose -f docker-compose.dev.yml down &&
-      docker-compose -f docker-compose.dev.yml pull &&
-      docker-compose -f docker-compose.dev.yml up -d --force-recreate &&
-      docker-compose -f docker-compose.dev.yml ps &&
+      docker compose -f docker-compose.dev.yml down &&
+      docker compose -f docker-compose.dev.yml pull &&
+      docker compose -f docker-compose.dev.yml up -d --force-recreate &&
+      docker compose -f docker-compose.dev.yml ps &&
       docker system prune -f'
 
   only:
@@ -82,7 +82,6 @@ build:production:
     - docker build --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE:latest
-
   only:
     - master
 
@@ -103,10 +102,10 @@ deploy:production:
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - ssh -t root@modflow.inowas.com 'cd /srv/docker/modflow.inowas.com &&
-      docker-compose down &&
-      docker-compose pull &&
-      docker-compose up -d --force-recreate &&
-      docker-compose ps &&
+      docker compose down &&
+      docker compose pull &&
+      docker compose up -d --force-recreate &&
+      docker compose ps &&
       docker system prune -f'
       
   only:

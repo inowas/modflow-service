@@ -10,6 +10,9 @@ services:
       - "traefik.wiki.frontend.rule=Host: ${HOST_URL}"
       - "traefik.wiki.port=8000"
       - "traefik.wiki.protocol=http"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONIOENCODING=UTF-8
     networks:
       - web
       - default

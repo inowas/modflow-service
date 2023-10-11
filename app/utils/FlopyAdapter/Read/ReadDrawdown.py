@@ -116,6 +116,7 @@ class ReadDrawdown:
             heads = bf.HeadFile(filename=self._filename, text='drawdown', precision='single')
             data = heads.get_ts(idx=(layer, row, column)).tolist()
             for i in range(len(data)):
+                data[i][0] = round(data[i][0], 0)
                 if data[i][1] < -999:
                     data[i][1] = None
             return data

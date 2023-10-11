@@ -134,7 +134,6 @@ class InowasModflowReadAdapterTestCase(unittest.TestCase):
         self.assertIsInstance(instance, InowasModflowReadAdapter)
         wel_boundaries = instance.wel_boundaries(target_epsg=4326)
         self.assertEqual(len(wel_boundaries), 93)
-        print(wel_boundaries[0])
         self.assertEqual(wel_boundaries[0],
                          {
                              'type': 'wel',

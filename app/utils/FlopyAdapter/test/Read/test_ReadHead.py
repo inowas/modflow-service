@@ -67,7 +67,6 @@ class ReadHeadTest(unittest.TestCase):
         dirname = os.path.dirname(__file__)
         rh = ReadHead(os.path.join(dirname, 'data/test_read_head_example'))
         self.assertIsInstance(rh, ReadHead)
-        print(rh.read_ts(0, 0, 0))
         self.assertEqual(rh.read_ts(0, 0, 0),
                          [[1.0, 450.0], [4.0, 450.0], [7.0, 450.0], [10.0, 450.0], [13.0, 450.0], [16.0, 450.0],
                           [19.0, 450.0], [22.0, 450.0], [25.0, 450.0], [28.0, 450.0], [31.0, 450.0], [59.0, 450.0],

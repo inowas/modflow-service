@@ -27,7 +27,7 @@ services:
     volumes:
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
-    command: [ "gunicorn", "--bind", ":8000", "--workers", "4", "wsgi:app" ]
+    command: [ "gunicorn", "--bind", ":8000", "--workers", "4", "--timeout", "300", "wsgi:app" ]
 
   worker:
     image: inowas/modflow-service:${VERSION_TAG}

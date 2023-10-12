@@ -50,12 +50,12 @@ deploy:dev:
     - echo "$SSH_PRIVATE_KEY" | ssh-add -
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - scp docker-compose.dev.yml $DEV_SERVER_SSH_CREDENTIALS:$DEV_SERVER_PATH/docker-compose.dev.yml
-    - ssh -t $DEV_SERVER_SSH_CREDENTIALS "cd $DEV_SERVER_FOLDER &&
-      docker compose -f docker-compose.dev.yml down &&
-      docker compose -f docker-compose.dev.yml pull &&
-      docker compose -f docker-compose.dev.yml up -d --force-recreate &&
-      docker compose -f docker-compose.dev.yml ps &&
+    - scp docker-compose.yml $DEV_SERVER_SSH_CREDENTIALS:$DEV_SERVER_PATH/docker-compose.yml
+    - ssh -t $DEV_SERVER_SSH_CREDENTIALS "cd $DEV_SERVER_PATH &&
+      docker compose down &&
+      docker compose pull &&
+      docker compose up -d --force-recreate &&
+      docker compose ps &&
       docker system prune -f"
   only:
     - dev
@@ -69,7 +69,6 @@ build:tag:
     - docker build --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-
   only:
     - tags
 
@@ -102,7 +101,7 @@ deploy:production:
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - scp docker-compose.yml $PROD_SERVER_SSH_CREDENTIALS:$PROD_SERVER_PATH/docker-compose.yml
-    - ssh -t $PROD_SERVER_SSH_CREDENTIALS "cd $PROD_SERVER_FOLDER &&
+    - ssh -t $PROD_SERVER_SSH_CREDENTIALS "cd $PROD_SERVER_PATH &&
       docker compose down &&
       docker compose pull &&
       docker compose up -d --force-recreate &&

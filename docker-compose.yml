@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   app:
-    image: inowas/modflow-service:latest
+    image: inowas/modflow-service:${VERSION_TAG}
     restart: always
     labels:
       - "traefik.enable=true"
@@ -30,7 +30,7 @@ services:
     command: [ "gunicorn", "--bind", ":8000", "--workers", "4", "wsgi:app" ]
 
   worker:
-    image: inowas/modflow-service:latest
+    image: inowas/modflow-service:${VERSION_TAG}
     restart: always
     volumes:
       - ./db:/db

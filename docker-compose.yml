@@ -1,25 +1,33 @@
-version: "2"
+version: "3.8"
 
 services:
   app:
     image: inowas/modflow-service:latest
     restart: always
     labels:
-      - "traefik.docker.network=web"
       - "traefik.enable=true"
-      - "traefik.wiki.frontend.rule=Host: ${HOST_URL}"
-      - "traefik.wiki.port=8000"
-      - "traefik.wiki.protocol=http"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend-http.entrypoints=web"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend-http.rule=Host(`${HOST_URL}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend.entrypoints=websecure"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend.rule=Host(`${HOST_URL}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend.tls=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend.tls.certresolver=${TRAEFIK_CERT_RESOLVER}"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-frontend.service=${COMPOSE_PROJECT_NAME}-frontend"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}-frontend.loadbalancer.server.port=8080"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONIOENCODING=UTF-8
     networks:
-      - web
+      - traefik
       - default
     volumes:
       - ./db:/db
       - ${MODFLOW_DATA}:/modflow
-    command: [ "gunicorn", "--bind", ":8000", "--workers", "4", "wsgi:app"]
+    command: [ "gunicorn", "--bind", ":8000", "--workers", "4", "wsgi:app" ]
 
   worker:
     image: inowas/modflow-service:latest
@@ -30,5 +38,6 @@ services:
     command: [ "python", "-u", "worker.py" ]
 
 networks:
-  web:
+  traefik:
+    name: ${TRAEFIK_NETWORK}
     external: true

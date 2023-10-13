@@ -16,7 +16,6 @@ variables:
 test:
   image: inowas/modflow-build:latest
   stage: test
-
   script:
     - make install
     - make test
@@ -30,15 +29,11 @@ build:dev:
     - docker build --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:dev .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE:dev
-
   only:
     - dev
 
 deploy:dev:
   stage: deploy
-  before_script:
-    - docker info
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN $CI_REGISTRY
   dependencies:
     - build:dev
   environment:
@@ -86,9 +81,6 @@ build:production:
 
 deploy:production:
   stage: deploy
-  before_script:
-    - docker info
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_TOKEN $CI_REGISTRY
   dependencies:
     - build:production
   environment:
@@ -107,6 +99,5 @@ deploy:production:
       docker compose up -d --force-recreate &&
       docker compose ps &&
       docker system prune -f"
-
   only:
     - master

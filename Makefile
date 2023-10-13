@@ -30,6 +30,7 @@ start-local:
 stop:
 	docker compose down
 
+## Run tests
 test: venv
 	python3 -m unittest discover -s app
 
